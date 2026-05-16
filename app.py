@@ -9,14 +9,15 @@ import cv2
 import numpy as np
 import uuid
 from datetime import datetime
-import tensorflow as tf
-from tensorflow import keras
-
- import json
+import torch
+import json
 import logging
 import os
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
+import torch.nn.functional as F
+from torchvision import transforms
+from PIL import Image
 
 load_dotenv()
 
@@ -52,7 +53,11 @@ def load_model():
 
     if model is None:
         try:
-            model = keras.models.load_model('models/cotton_classifier.h5')
+            model = torch.load(
+                'models/cotton_crop_disease_classification/full_resnet50_model.pth',
+                map_location=torch.device('cpu'),
+                weights_only=False
+            )
             logger.info("Model loaded successfully")
 
         except Exception as e:
@@ -63,16 +68,16 @@ def load_model():
 
 
 def preprocess_image(image, target_size=(224, 224)):
-    """Preprocess image for model input"""
+    """Preprocess image for PyTorch model"""
 
-    # Resize
-    if len(image.shape) == 2:  # Grayscale
-        image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+    transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize(target_size),
+        transforms.ToTensor(),
+    ])
 
-    image = cv2.resize(image, target_size)
-
-    # Normalize
-    image = image.astype('float32') / 255.0
+    image = transform(image)
+    image = image.unsqueeze(0)
 
     return image
 
@@ -80,16 +85,25 @@ def preprocess_image(image, target_size=(224, 224)):
 def analyze_image(image):
     """Analyze cotton image and return results"""
 
-    # Load model
-    model = load_model()
-
-    # Preprocess image
     processed = preprocess_image(image)
-    processed = np.expand_dims(processed, axis=0)
 
     if model:
-        # Use trained model
-        phase_pred, health_pred, score_pred = model.predict(processed, verbose=0)
+
+        with torch.no_grad():
+
+            output = model(processed)
+
+            probs = F.softmax(output, dim=1)
+
+            confidence, prediction = torch.max(probs, 1)
+
+        phase_pred = probs.numpy()
+
+        phase_idx = int(prediction.item())
+
+        health_pred = np.array([[1.0, 0.0, 0.0, 0.0]])
+
+        score_pred = np.array([[float(confidence.item())]])
 
     else:
         # Demo predictions (random)
@@ -116,7 +130,6 @@ def analyze_image(image):
         'Other Damage'
     ]
 
-    phase_idx = np.argmax(phase_pred[0])
     health_idx = np.argmax(health_pred[0])
     health_score = float(score_pred[0][0] * 100)
 
@@ -193,8 +206,12 @@ def datetimeformat_filter(value):
 
 @app.route('/')
 def index():
-    """Home page"""
-    return render_template('index.html', text=LANG.get(lang, LANG["en"]), lang=lang)
+    lang = request.args.get("lang", "en")
+    return render_template(
+        'index.html',
+        text=LANG.get(lang, LANG["en"]),
+        lang=lang
+    )
 
 
 @app.route('/analyze', methods=['GET', 'POST'])
