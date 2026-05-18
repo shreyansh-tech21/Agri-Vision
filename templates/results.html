@@ -3,7 +3,7 @@
 <section class="main-content">
     <div class="container" style="padding-bottom: 4rem;">
 
-        <div class="glass-card reveal reveal-fade-up" style="padding: 2.5rem; max-width: 750px; margin: 0 auto;">
+        <div class="glass-card reveal reveal-fade-up results-card">
             <div class="section-header" style="margin-bottom: 1.5rem;">
                 <h1 style="font-size: 2rem; margin-bottom: 0.5rem; color: var(--emerald-green)">
                     <i class="fas fa-robot"></i> Analysis Results
@@ -15,89 +15,89 @@
 
             <!-- Analyzed Image + Bounding Boxes -->
             {% if image_b64 %}
-            <div style="position: relative; width: 410px; margin: 0 auto 2rem auto;">
+            <div class="result-img-container">
                 <img id="result-img" alt="Analyzed Crop Image"
                      src="data:image/jpeg;base64,{{ image_b64 }}"
-                     style="border-radius: 13px; box-shadow: var(--soft-shadow); width: 410px; border: 2px solid var(--success-border);">
+                     class="result-img">
                 <svg id="bbox-svg"
-                     style="position: absolute; top:0; left:0; width: 410px; height:auto; pointer-events:none; border-radius:13px;"
+                     class="result-svg"
                      width="410" height="{{ (img_shape.height / img_shape.width * 410)|int }}"></svg>
             </div>
             {% endif %}
 
             <!-- Disease Classification -->
-            <h2 style="color: var(--emerald-green); font-size:1.2rem; margin-top: 1.2rem; margin-bottom: 0.7rem;">
+            <h2 class="results-section-title">
                 <i class="fas fa-stethoscope"></i> Disease Classification (ResNet50)
             </h2>
-            <ul style="font-size:1.05rem; margin-bottom:1.3rem;">
+            <ul class="results-list">
                 <li>
                     <b>Predicted Class:</b>
                     {{ results.disease.predicted_class }}
-                    <span style="color:#555;">(Confidence: {{ results.disease.confidence|round(2) }})</span>
+                    <span style="color:var(--text-muted);">(Confidence: {{ results.disease.confidence|round(2) }})</span>
                 </li>
                 <li><b>Health Score:</b> {{ results.disease.health_score|round(4) }}%</li>
             </ul>
-            <table class="reveal-stagger" style="margin-bottom: 2.2rem; min-width: 60%; border-collapse: collapse; border-radius: 8px; overflow: hidden; color: var(--text-main);">
+            <table class="results-table reveal-stagger">
                 <tr class="reveal reveal-fade-in">
-                    <th style="background:var(--table-header-bg);">Disease Class</th>
-                    <th style="background:var(--table-header-bg);">Probability</th>
+                    <th>Disease Class</th>
+                    <th>Probability</th>
                 </tr>
                 {% for cname, prob in results.disease.all_confidences.items() %}
                 <tr class="reveal reveal-fade-in">
-                    <td style="background:var(--table-cell-bg);">{{ cname }}</td>
-                    <td style="background:var(--table-cell-bg);">{{ prob|round(4) }}</td>
+                    <td>{{ cname }}</td>
+                    <td>{{ prob|round(4) }}</td>
                 </tr>
                 {% endfor %}
             </table>
 
             <!-- Growth Stage Detection -->
-            <h2 style="color: var(--emerald-green); font-size:1.2rem; margin-bottom: 0.8rem;">
+            <h2 class="results-section-title">
                 <i class="fas fa-seedling"></i> Growth Stage Detection (YOLOv8)
             </h2>
             {% if results.growth.main_class %}
-            <ul style="font-size:1.05rem; margin-bottom:1.3rem;">
+            <ul class="results-list">
                 <li>
                     <b>Main Stage:</b>
                     {{ results.growth.main_class }}
-                    <span style="color:#555;">(Confidence: {{ results.growth.confidence|round(2) }})</span>
+                    <span style="color:var(--text-muted);">(Confidence: {{ results.growth.confidence|round(2) }})</span>
                 </li>
             </ul>
-            <table class="reveal-stagger" style="margin-bottom: 2rem; min-width: 60%; border-collapse: collapse; border-radius: 8px; overflow: hidden; color: var(--text-main);">
+            <table class="results-table reveal-stagger">
                 <tr class="reveal reveal-fade-in">
-                    <th style="background:var(--table-header-bg);">Stage Class</th>
-                    <th style="background:var(--table-header-bg);">Confidence</th>
-                    <th style="background:var(--table-header-bg);">BBox</th>
+                    <th>Stage Class</th>
+                    <th>Confidence</th>
+                    <th>BBox</th>
                 </tr>
                 {% for box in results.growth.boxes %}
                 <tr class="reveal reveal-fade-in">
-                    <td style="background:var(--table-cell-bg);">{{ box.class_name }}</td>
-                    <td style="background:var(--table-cell-bg);">{{ box.confidence|round(3) }}</td>
-                    <td style="background:var(--table-cell-bg);">[{{ box.bbox[0]|int }}, {{ box.bbox[1]|int }}, {{ box.bbox[2]|int }}, {{ box.bbox[3]|int }}]</td>
+                    <td>{{ box.class_name }}</td>
+                    <td>{{ box.confidence|round(3) }}</td>
+                    <td>[{{ box.bbox[0]|int }}, {{ box.bbox[1]|int }}, {{ box.bbox[2]|int }}, {{ box.bbox[3]|int }}]</td>
                 </tr>
                 {% endfor %}
             </table>
             {% else %}
-            <p style="margin-bottom: 2rem; color: #666;">No cotton growth stage detected.</p>
+            <p style="margin-bottom: 2rem; color: var(--text-muted);">No cotton growth stage detected.</p>
             {% endif %}
 
             <!-- Recommendations -->
-            <h2 style="color: var(--emerald-green); font-size:1.1rem; margin-bottom:0.9rem;">
+            <h2 class="results-section-title">
                 <i class="fas fa-lightbulb"></i> Recommendations
             </h2>
-            <ul style="margin-bottom:1.2rem;" class="reveal-stagger">
+            <ul class="results-list reveal-stagger">
                 {% for rec in results.recommendations %}
-                    <li style="margin-bottom:0.3em;" class="reveal reveal-slide-left">{{ rec }}</li>
+                    <li class="reveal reveal-slide-left">{{ rec }}</li>
                 {% endfor %}
             </ul>
 
-            <div style="margin-top: 18px; color: #555; font-size: 0.95em;">
+            <div class="results-footer">
                 <b>Analysis Time:</b> {{ timestamp }}
             </div>
 
             <!-- Raw output collapsible for advanced use -->
-            <details style="margin: 20px 0 0 0">
-                <summary style="cursor:pointer; color:var(--emerald-green); font-weight:bold;">Show Full Model Output (JSON)</summary>
-                <pre style="background:var(--card-bg); border:1px solid var(--success-border); padding:10px; font-size:12px; max-height:220px; overflow:auto;">
+            <details class="results-details">
+                <summary class="results-summary">Show Full Model Output (JSON)</summary>
+                <pre class="results-pre">
 {{ raw_json }}
                 </pre>
             </details>

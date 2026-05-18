@@ -3,27 +3,26 @@
 {% block content %}
 <section class="main-content">
     <div class="container" style="padding-bottom: 4rem;">
-        <div class="glass-card reveal reveal-fade-up" style="padding: 2.5rem; max-width: 750px; margin: 0 auto; text-align: center;">
+        <div class="glass-card reveal reveal-fade-up upload-card">
             <div class="section-header" style="margin-bottom: 1.5rem;">
                 <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">📸 Analyze Crop</h1>
                 <p style="font-size: 0.95rem;">Upload a high-resolution image of your cotton crop for instant AI diagnostics.</p>
             </div>
             
             <form action="/analyze" method="POST" enctype="multipart/form-data">
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()" 
+                <div class="upload-area upload-zone" onclick="document.getElementById('fileInput').click()" 
                      tabindex="0" role="button" aria-label="Upload image area"
-                     onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); document.getElementById('fileInput').click(); }"
-                     style="border: 2px dashed var(--emerald-green); background: rgba(46, 139, 87, 0.03); padding: 2.5rem; border-radius: 16px; cursor: pointer; transition: var(--transition-smooth); position: relative; overflow: hidden;">
-                    <div style="font-size: 2.5rem; color: var(--emerald-green); margin-bottom: 1rem; animation: float 3s ease-in-out infinite;">
+                     onkeydown="if(event.key === 'Enter' || event.key === ' ') { event.preventDefault(); document.getElementById('fileInput').click(); }">
+                    <div class="upload-icon">
                         <i class="fas fa-cloud-upload-alt"></i>
                     </div>
                     <h3 style="font-size: 1.1rem; margin-bottom: 0.4rem;">Drop image here or click to browse</h3>
                     <p style="opacity: 0.6; font-size: 0.85rem;">Supports: PNG, JPG, JPEG (Max 10MB)</p>
                     
-                    <div id="previewContainer" style="display: none; margin-top: 2rem; animation: fadeInUp 0.5s ease;">
-                        <div style="position: relative; display: inline-block;">
-                            <img id="imagePreview" src="" alt="Preview" style="max-width: 100%; border-radius: 15px; box-shadow: var(--soft-shadow);">
-                            <div style="position: absolute; top: -10px; right: -10px; background: var(--emerald-green); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer;" onclick="event.stopPropagation(); resetUpload();">
+                    <div id="previewContainer" class="preview-container">
+                        <div class="preview-img-wrapper">
+                            <img id="imagePreview" src="" alt="Preview" class="preview-img">
+                            <div class="close-btn" onclick="event.stopPropagation(); resetUpload();">
                                 <i class="fas fa-times"></i>
                             </div>
                         </div>
@@ -33,22 +32,22 @@
                 <input type="file" id="fileInput" name="file" accept="image/*" class="file-input" style="display: none;" onchange="previewImage(this)">
                 
                 <div style="margin-top: 3rem;">
-                    <button type="submit" class="btn btn-primary btn-large" style="width: 100%; justify-content: center; box-shadow: 0 10px 30px rgba(74, 144, 226, 0.2);">
+                    <button type="submit" class="btn btn-primary btn-large action-btn">
                         <i class="fas fa-magnifying-glass"></i> Start AI Analysis
                     </button>
                 </div>
             </form>
             
-            <div style="margin-top: 4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; text-align: left;" class="reveal-stagger">
-                <div class="glass-card reveal reveal-slide-right" style="padding: 1.5rem; background: var(--success-bg);">
+            <div class="info-grid reveal-stagger">
+                <div class="glass-card reveal reveal-slide-right tip-card">
                     <h4 style="color: var(--emerald-green); margin-bottom: 1rem;"><i class="fas fa-lightbulb"></i> Pro Tips</h4>
-                    <ul style="list-style: none; font-size: 0.95rem; opacity: 0.8; color: var(--text-main);">
-                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="margin-right: 8px;"></i> Use clear daylight</li>
-                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="margin-right: 8px;"></i> Focus on the bolls</li>
-                        <li><i class="fas fa-check" style="margin-right: 8px;"></i> Keep camera steady</li>
+                    <ul class="tip-list">
+                        <li><i class="fas fa-check"></i> Use clear daylight</li>
+                        <li><i class="fas fa-check"></i> Focus on the bolls</li>
+                        <li><i class="fas fa-check"></i> Keep camera steady</li>
                     </ul>
                 </div>
-                <div class="glass-card reveal reveal-slide-left" style="padding: 1.5rem; background: var(--info-bg);">
+                <div class="glass-card reveal reveal-slide-left help-card">
                     <h4 style="color: var(--ai-blue); margin-bottom: 1rem;"><i class="fas fa-info-circle"></i> Quick Help</h4>
                     <p style="font-size: 0.9rem; opacity: 0.8;">Our AI analyzes over 50 specific markers to determine growth stage and health status.</p>
                 </div>
