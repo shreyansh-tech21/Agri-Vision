@@ -1,0 +1,164 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+<div style="
+    margin-top: 140px;
+    margin-bottom: 80px;
+    padding: 0 20px;
+">
+
+    <!-- Heading -->
+    <div style="
+        text-align: center;
+        margin-bottom: 55px;
+    ">
+        <h1 style="
+            font-weight: 700;
+            margin-bottom: 15px;
+        ">
+            Farming Video Tutorials
+        </h1>
+
+        <p style="
+            color: var(--text-color, #b0b0b0);
+            max-width: 700px;
+            margin: auto;
+            line-height: 1.7;
+        ">
+            Learn crop disease detection, prevention methods, and smart farming techniques through curated tutorials.
+        </p>
+    </div>
+
+    <!-- Cards Container -->
+    <div style="
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 35px;
+    ">
+
+        <!-- Card 1 -->
+        <div style="
+            width: 350px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: 0.3s ease;
+        ">
+
+            <iframe
+                width="100%"
+                height="220"
+                src="https://www.youtube.com/embed/gjMIh19zH7k"
+                title="Tomato Disease Tutorial"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+
+            <div style="padding: 24px;">
+
+                <h3 style="
+                    margin-bottom: 14px;
+                    font-weight: 600;
+                ">
+                    Tomato Leaf Disease Detection
+                </h3>
+
+                <p style="
+                    color: var(--text-color, #cfcfcf);
+                    line-height: 1.7;
+                    margin-bottom: 0;
+                ">
+                    Learn how to identify tomato leaf diseases early and protect crops effectively.
+                </p>
+
+            </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div style="
+            width: 350px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: 0.3s ease;
+        ">
+
+            <iframe
+                width="100%"
+                height="220"
+                src="https://www.youtube.com/embed/SZcB2nHkjk4"
+                title="Rice Disease Tutorial"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+
+            <div style="padding: 24px;">
+
+                <h3 style="
+                    margin-bottom: 14px;
+                    font-weight: 600;
+                ">
+                    Rice Blast Disease Management
+                </h3>
+
+                <p style="
+                    color: var(--text-color, #cfcfcf);
+                    line-height: 1.7;
+                    margin-bottom: 0;
+                ">
+                    Understand symptoms, prevention methods, and modern crop management techniques.
+                </p>
+
+            </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div style="
+            width: 350px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            transition: 0.3s ease;
+        ">
+
+            <iframe
+                width="100%"
+                height="220"
+                src="https://www.youtube.com/embed/mkEsLdNKlPM"
+                title="Organic Farming Tutorial"
+                frameborder="0"
+                allowfullscreen>
+            </iframe>
+
+            <div style="padding: 24px;">
+
+                <h3 style="
+                    margin-bottom: 14px;
+                    font-weight: 600;
+                ">
+                    Organic Farming Tips
+                </h3>
+
+                <p style="
+                    color: var(--text-color, #cfcfcf);
+                    line-height: 1.7;
+                    margin-bottom: 0;
+                ">
+                    Explore sustainable farming practices and improve long-term soil health naturally.
+                </p>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
