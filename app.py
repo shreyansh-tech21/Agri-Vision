@@ -883,9 +883,7 @@ def health():
             "service": "Agri-Vision Cotton Analysis API",
         }
     )
-@app.route('/dashboard')
-def dashboard():
-    return render_template("dashboard.html")
+
 
 @app.route("/history")
 def history():

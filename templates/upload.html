@@ -241,26 +241,6 @@ function useMyLocation() {
             }
             </style>
             </form>
-            <script>
-                document.querySelector("form").addEventListener("submit", function (e) {
-                    const fileInput = document.getElementById("fileInput");
-
-                    if (!fileInput.files.length) {
-                        alert("Please upload an image first.");
-                        e.preventDefault();
-                        return;
-                    }
-                    const button = document.querySelector('button[type="submit"]');
-                    const progressPanel = document.getElementById("streamProgressPanel");
-
-                    button.disabled = true;
-                    button.innerHTML = "Analyzing...";
-
-                    if (progressPanel) {
-                        progressPanel.style.display = "block";
-                    }
-                });
-            </script>
             <div id="loadingOverlay" class="loading-overlay hidden" aria-hidden="true">
                 <div class="loading-panel">
                     <div class="loading-spinner"></div>
@@ -588,9 +568,13 @@ uploadArea.addEventListener('drop', (e) => {
 });
 
 
+let isAnalyzing = false;
+
 document.querySelector('form').addEventListener('submit', async function(event) {
     event.preventDefault();   // stop normal form submission
  
+    if (isAnalyzing) return; // Prevent duplicate submissions
+
     const form        = event.target;
     const submitBtn   = document.querySelector('.action-btn');
     const panel       = document.getElementById('streamProgressPanel');
@@ -605,7 +589,7 @@ document.querySelector('form').addEventListener('submit', async function(event) 
         return;
     }
 
-    if (submitBtn.disabled) return; // Prevent duplicate submissions
+    isAnalyzing = true;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
  
@@ -684,6 +668,7 @@ document.querySelector('form').addEventListener('submit', async function(event) 
                     statusMsg.style.color = '#ff6b6b';
                     progressBar.style.background = '#ff6b6b';
                     
+                    isAnalyzing = false;
                     submitBtn.style.display = '';
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
@@ -772,9 +757,16 @@ document.querySelector('form').addEventListener('submit', async function(event) 
             }
         });
         
+        isAnalyzing = false;
         submitBtn.style.display = '';
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-magnifying-glass"></i> Try Again';
+    } finally {
+        // Reset analyzing state if we didn't redirect
+        if (!finalPayload) {
+            isAnalyzing = false;
+            submitBtn.disabled = false;
+        }
     }
 });
 </script>

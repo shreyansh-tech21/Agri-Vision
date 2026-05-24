@@ -3155,7 +3155,6 @@ fix-stories-card-alignment
    the professional frontend experience of the
    Agri-Vision AI-powered agricultural platform.
 ========================================================= */
-}
 
 /*  MOBILE RESPONSIVENESS */
 
@@ -3900,6 +3899,11 @@ html {
         padding: 1rem;
     }
 }
-        grid-template-columns: 1fr;
-    }
+
+/* Loading State Protection */
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
 }
