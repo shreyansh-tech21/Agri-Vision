@@ -330,6 +330,26 @@ def test_post_comparison_invalid_crop_image(client, monkeypatch):
     )
 
 
+def test_post_comparison_duplicate_image(client):
+    # Create the same image twice
+    image_content = io.BytesIO()
+    Image.new("RGB", (100, 100), color="blue").save(image_content, format="PNG")
+    
+    # We need two separate BytesIO objects with the same content for the request
+    image_one = io.BytesIO(image_content.getvalue())
+    image_two = io.BytesIO(image_content.getvalue())
+
+    data = {
+        "last_week_image": (image_one, "field_1.png"),
+        "current_week_image": (image_two, "field_2.png"),
+    }
+    
+    resp = client.post("/comparison", data=data, content_type="multipart/form-data")
+    assert resp.status_code == 200
+    assert b"Duplicate field images detected" in resp.data
+    assert b"Please upload two different images" in resp.data
+
+
 def test_post_comparison_fallback_when_both_images_no_growth(client, monkeypatch):
     def mock_analyze_image(_image):
         return {

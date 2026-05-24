@@ -7,6 +7,7 @@ Thread-safe execution for production environments with Celery Async Support.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import logging
 import os
@@ -236,12 +237,17 @@ class ModelManager:
 
 model_manager = ModelManager()
 
+resnet_model = None
+yolo_model = None
+
 def load_models():
     """Wrapper for backward compatibility"""
-    return model_manager.load_models()
+    global resnet_model, yolo_model
+    resnet_model, yolo_model = model_manager.load_models()
+    return resnet_model, yolo_model
 
 def ensure_models_loaded() -> None:
-    model_manager.load_models()
+    load_models()
 
 
 # -------------------------------------------------------------------
@@ -393,7 +399,9 @@ def preprocess_image_for_resnet(image: np.ndarray, target_size: Tuple[int, int] 
     return tensor
 
 def infer_disease(image: np.ndarray) -> Dict[str, Any]:
-    resnet_model, _ = model_manager.load_models()
+    global resnet_model
+    if resnet_model is None:
+        resnet_model, _ = model_manager.load_models()
 
     if resnet_model is not None:
         processed = preprocess_image_for_resnet(image)
@@ -598,6 +606,18 @@ def encode_image_for_display(image: np.ndarray) -> str:
 
 def is_allowed_image(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
+
+def calculate_file_hash(file_storage) -> str:
+    """Generate SHA-256 hash for an uploaded file using chunk reading."""
+    sha256_hash = hashlib.sha256()
+    # Ensure we start from the beginning of the file
+    file_storage.seek(0)
+    # Read in 4KB chunks
+    for byte_block in iter(lambda: file_storage.read(4096), b""):
+        sha256_hash.update(byte_block)
+    # Reset file pointer for subsequent reads
+    file_storage.seek(0)
+    return sha256_hash.hexdigest()
 
 def read_uploaded_image(file_storage) -> Tuple[str, np.ndarray, np.ndarray]:
     safe_filename = secure_filename(file_storage.filename)
@@ -876,6 +896,21 @@ def comparison():
             if not is_allowed_image(uploaded_file.filename):
                 flash(f"Invalid file type for {label}. Please upload PNG, JPG, JPEG, or GIF.", "error")
                 return redirect(request.url)
+
+        # REAL SHA-256 Duplicate Validation
+        try:
+            last_week_file = request.files["last_week_image"]
+            current_week_file = request.files["current_week_image"]
+            
+            last_week_hash = calculate_file_hash(last_week_file)
+            current_week_hash = calculate_file_hash(current_week_file)
+            
+            if last_week_hash == current_week_hash:
+                error_message = "Duplicate field images detected. Please upload two different images for meaningful comparison analysis."
+                return render_template("comparison.html", error_message=error_message)
+        except Exception as exc:
+            logger.error("Hashing error: %s", exc)
+            # Continue if hashing fails, but log it
 
         try:
             old_filename, old_image, old_rgb = read_uploaded_image(request.files["last_week_image"])

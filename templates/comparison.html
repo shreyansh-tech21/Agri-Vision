@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        <form class="comparison-upload-grid" action="/comparison" method="POST" enctype="multipart/form-data">
+        <form class="comparison-upload-grid" id="comparisonForm" action="/comparison" method="POST" enctype="multipart/form-data">
             <div id="validation-error" class="alert alert-error" style="display:none; grid-column: 1 / -1; margin-bottom: 1.5rem;" role="alert">
                 <i class="fas fa-exclamation-circle"></i>
                 <span id="error-message"></span>
@@ -30,7 +30,7 @@
                     </div>
                 </div>
                 <label class="comparison-dropzone" for="lastWeekInput" id="dropzone-lastWeek">
-                    <input type="file" id="lastWeekInput" name="last_week_image" accept="*/*" required data-preview-target="lastWeekPreview" data-file-label="lastWeekFile">
+                    <input type="file" id="lastWeekInput" name="last_week_image" accept="image/*" required data-preview-target="lastWeekPreview" data-file-label="lastWeekFile">
                     <span class="comparison-upload-icon"><i class="fas fa-cloud-arrow-up"></i></span>
                     <strong>Upload last week photo</strong>
                     <small>All formats supported (Max 5MB)</small>
@@ -54,11 +54,14 @@
                     </div>
                 </div>
                 <label class="comparison-dropzone" for="currentWeekInput" id="dropzone-currentWeek">
-                    <input type="file" id="currentWeekInput" name="current_week_image" accept="*/*" required data-preview-target="currentWeekPreview" data-file-label="currentWeekFile">
+                    <input type="file" id="currentWeekInput" name="current_week_image" accept="image/*" required data-preview-target="currentWeekPreview" data-file-label="currentWeekFile">
                     <span class="comparison-upload-icon"><i class="fas fa-leaf"></i></span>
                     <strong>Upload current week photo</strong>
                     <small>All formats supported (Max 5MB)</small>
                 </label>
+                <div id="duplicate-warning" style="display:none; color: #ff6b6b; font-size: 0.85rem; margin-top: 0.75rem; text-align: center; font-weight: 500;">
+                    <i class="fas fa-exclamation-circle"></i> Please upload a different image for comparison.
+                </div>
                 <div class="comparison-preview-frame">
                     {% if new_image_b64 %}
                         <img id="currentWeekPreview" src="data:image/jpeg;base64,{{ new_image_b64 }}" alt="Current week field preview">
@@ -177,12 +180,12 @@
 
 <script>
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB for images
-const MAX_PDF_SIZE = 10 * 1024 * 1024;  // 10MB for PDFs
 
 function showError(message, inputId) {
     const errorDiv = document.getElementById('validation-error');
     const errorMsg = document.getElementById('error-message');
     const dropzone = document.getElementById('dropzone-' + inputId.replace('Input', ''));
+    const duplicateWarning = document.getElementById('duplicate-warning');
     
     if (errorMsg) errorMsg.textContent = message;
     if (errorDiv) {
@@ -193,83 +196,58 @@ function showError(message, inputId) {
         dropzone.style.borderColor = '#dc3545';
         dropzone.style.background = 'rgba(220, 53, 69, 0.03)';
     }
-}
 
-function showInfo(message, inputId) {
-    const errorDiv = document.getElementById('validation-error');
-    const errorMsg = document.getElementById('error-message');
-    const dropzone = document.getElementById('dropzone-' + inputId.replace('Input', ''));
-    
-    if (errorMsg) errorMsg.textContent = message;
-    if (errorDiv) {
-        errorDiv.className = 'alert alert-info';
-        errorDiv.style.display = 'flex';
-    }
-    if (dropzone) {
-        dropzone.style.borderColor = 'var(--ai-blue)';
+    if (inputId === 'currentWeekInput' && message.includes('Duplicate')) {
+        if (duplicateWarning) duplicateWarning.style.display = 'block';
     }
 }
 
-function hideError(inputId) {
+function hideError() {
     const errorDiv = document.getElementById('validation-error');
-    const dropzone = document.getElementById('dropzone-' + inputId.replace('Input', ''));
+    const duplicateWarning = document.getElementById('duplicate-warning');
     
     if (errorDiv) errorDiv.style.display = 'none';
-    if (dropzone) {
-        dropzone.style.borderColor = 'rgba(46, 139, 87, 0.45)';
-        dropzone.style.background = 'rgba(46, 139, 87, 0.05)';
-    }
+    if (duplicateWarning) duplicateWarning.style.display = 'none';
+    
+    document.querySelectorAll(".comparison-dropzone").forEach(dz => {
+        dz.style.borderColor = 'rgba(46, 139, 87, 0.45)';
+        dz.style.background = 'rgba(46, 139, 87, 0.05)';
+    });
 }
 
-async function convertPdfToImage(file, inputId) {
-    if (typeof pdfjsLib === 'undefined') {
-        throw new Error('PDF library failed to load. Please refresh the page.');
-    }
+function checkDuplicateImages() {
+    const lastWeekInput = document.getElementById('lastWeekInput');
+    const currentWeekInput = document.getElementById('currentWeekInput');
     
-    // Explicitly set worker for reliability
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-    
-    showInfo('Processing PDF document...', inputId);
-    
-    try {
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-        const pdf = await loadingTask.promise;
+    if (lastWeekInput.files.length > 0 && currentWeekInput.files.length > 0) {
+        const file1 = lastWeekInput.files[0];
+        const file2 = currentWeekInput.files[0];
         
-        const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 1.5 });
-
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-
-        await page.render({ canvasContext: context, viewport: viewport }).promise;
-
-        return new Promise((resolve, reject) => {
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
-                    resolve(new File([blob], newFileName, { type: 'image/jpeg' }));
-                } else {
-                    reject(new Error('Failed to extract image from PDF.'));
-                }
-            }, 'image/jpeg', 0.9);
-        });
-    } catch (error) {
-        console.error('PDF error:', error);
-        throw new Error('PDF Error: ' + (error.message || 'Unable to process PDF.'));
+        if (file1.name === file2.name && file1.size === file2.size && file1.type === file2.type) {
+            showError('Duplicate field images detected. Please upload two different images for meaningful comparison analysis.', 'currentWeekInput');
+            return true;
+        }
     }
+    return false;
 }
-
 
 document.addEventListener("DOMContentLoaded", function() {
+    const comparisonForm = document.getElementById('comparisonForm');
+    
+    if (comparisonForm) {
+        comparisonForm.addEventListener('submit', function(e) {
+            if (checkDuplicateImages()) {
+                e.preventDefault();
+            }
+        });
+    }
+
     document.querySelectorAll(".comparison-dropzone input[type='file']").forEach(function(input) {
-        input.addEventListener("change", async function() {
+        input.addEventListener("change", function() {
             var preview = document.getElementById(input.dataset.previewTarget);
             var label = document.getElementById(input.dataset.fileLabel);
             
-            hideError(input.id);
+            hideError();
 
             if (!input.files || !input.files[0]) {
                 if (preview) preview.removeAttribute("src");
@@ -278,30 +256,19 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             let file = input.files[0];
-            const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
             // 1. Validate Size
-            if (isPdf && file.size > MAX_PDF_SIZE) {
-                showError('PDF is too large. Maximum allowed size is 10MB.', input.id);
-                input.value = ''; return;
-            } else if (!isPdf && file.size > MAX_IMAGE_SIZE) {
+            if (file.size > MAX_IMAGE_SIZE) {
                 showError('Image is too large. Maximum allowed size is 5MB.', input.id);
                 input.value = ''; return;
             }
 
-            // 2. Check for PDF
-            if (isPdf) {
-                try {
-                    file = await convertPdfToImage(file, input.id);
-                    hideError(input.id);
-                    
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(file);
-                    input.files = dataTransfer.files;
-                } catch (err) {
-                    showError(err.message, input.id);
-                    input.value = ''; return;
-                }
+            // 2. Check for Duplicates early
+            if (checkDuplicateImages()) {
+                input.value = ''; 
+                if (preview) preview.removeAttribute("src");
+                if (label) label.textContent = "No image selected";
+                return;
             }
 
             // 3. Final Image validation & preview
