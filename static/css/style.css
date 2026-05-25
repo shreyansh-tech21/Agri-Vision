@@ -36,6 +36,21 @@
     --info-bg: rgba(74, 144, 226, 0.1);
     --info-text: #0c5460;
     --info-border: rgba(74, 144, 226, 0.2);
+
+    /* Weather recommendation box */
+    --weather-location-bg: linear-gradient(135deg, #e8f4fd 0%, #d1ecf1 100%);
+    --weather-location-border: #bee5eb;
+    --weather-location-text: #0c5460;
+    --weather-location-muted: #6c757d;
+    --weather-location-input-bg: #ffffff;
+    --weather-location-input-border: #ced4da;
+    --weather-location-input-text: #495057;
+    --weather-location-input-placeholder: #7b8794;
+    --weather-location-button-bg: #17a2b8;
+    --weather-location-button-hover-bg: #138496;
+    --weather-location-button-success-bg: #28a745;
+    --weather-location-button-success-hover-bg: #218838;
+    --weather-location-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
     --glass-bg: rgba(255, 255, 255, 0.65);
     --glass-border: rgba(255, 255, 255, 0.4);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
@@ -105,6 +120,20 @@
     --info-bg: rgba(100, 181, 246, 0.15);
     --info-text: #90caf9;
     --info-border: rgba(100, 181, 246, 0.3);
+
+        --weather-location-bg: linear-gradient(135deg, rgba(22, 27, 33, 0.96) 0%, rgba(17, 24, 39, 0.98) 100%);
+        --weather-location-border: rgba(96, 165, 250, 0.18);
+        --weather-location-text: #dbeafe;
+        --weather-location-muted: #94a3b8;
+        --weather-location-input-bg: rgba(15, 23, 42, 0.95);
+        --weather-location-input-border: rgba(148, 163, 184, 0.22);
+        --weather-location-input-text: #e2e8f0;
+        --weather-location-input-placeholder: #94a3b8;
+        --weather-location-button-bg: #2563eb;
+        --weather-location-button-hover-bg: #1d4ed8;
+        --weather-location-button-success-bg: #16a34a;
+        --weather-location-button-success-hover-bg: #15803d;
+        --weather-location-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
       /* High contrast deep-green-black */
     --footer-text: #E0EAE2;
     --footer-muted: rgba(224, 234, 226, 0.6);
@@ -2381,6 +2410,113 @@ body {
     background: var(--info-bg);
     color: var(--info-text);
     border-color: var(--info-border);
+}
+
+/* Weather-aware location recommendation box */
+.weather-location-section {
+    background: var(--weather-location-bg);
+    border: 1px solid var(--weather-location-border);
+    color: var(--weather-location-text);
+    box-shadow: var(--weather-location-shadow);
+}
+
+.weather-location-title {
+    color: var(--weather-location-text);
+}
+
+.weather-location-subtitle,
+.weather-location-status {
+    color: var(--weather-location-muted);
+}
+
+.weather-location-status {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+}
+
+.weather-location-status.is-success {
+    color: var(--success-text);
+}
+
+.weather-location-status.is-error {
+    color: var(--error-text);
+}
+
+.weather-location-controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.weather-location-input-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+.weather-location-input {
+    width: 100%;
+    padding: 0.5rem 2.2rem 0.5rem 0.75rem;
+    border: 1px solid var(--weather-location-input-border);
+    border-radius: 8px;
+    background: var(--weather-location-input-bg);
+    color: var(--weather-location-input-text);
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s, background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.weather-location-input::placeholder {
+    color: var(--weather-location-input-placeholder);
+}
+
+.weather-location-input:focus {
+    outline: none;
+    border-color: var(--ai-blue);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.12);
+}
+
+.weather-location-tick {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    display: none;
+}
+
+.weather-location-button {
+    padding: 0.5rem 1rem;
+    background: var(--weather-location-button-bg);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: background-color 0.2s, transform 0.2s, opacity 0.2s;
+}
+
+.weather-location-button:hover:not(:disabled) {
+    background: var(--weather-location-button-hover-bg);
+}
+
+.weather-location-button.is-success {
+    background: var(--weather-location-button-success-bg);
+}
+
+.weather-location-button.is-success:hover:not(:disabled) {
+    background: var(--weather-location-button-success-hover-bg);
+}
+
+.weather-location-button:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.weather-location-alert {
+    margin-top: 1rem;
 }
 
 .success-text {
