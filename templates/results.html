@@ -71,18 +71,18 @@
       <!-- Disease Classification -->
       <div class="result-card">
         <h2 class="results-section-title">
-          <i class="fas fa-stethoscope"></i> Disease Classification (ResNet50)
+          <i class="fas fa-stethoscope"></i> {{ 'res_disease_title' | i18n }}
         </h2>
         <ul class="results-list">
           <li>
-            <b>Predicted Class:</b>
+            <b>{{ 'res_predicted' | i18n }}:</b>
             {{ disease.predicted_class|default("Unknown") }}
             <span style="color: var(--text-muted);">
               (Confidence: {{ disease.confidence|default(0)|float|round(2) }})
             </span>
           </li>
           <li>
-            <b>Health Score:</b>
+            <b>{{ 'res_health' | i18n }}:</b>
             <div class="health-bar">
               <div class="health-fill" style="width: {{ disease.health_score|default(0)|float|round(0) }}%;"></div>
             </div>
