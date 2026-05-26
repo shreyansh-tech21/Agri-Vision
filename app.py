@@ -10,6 +10,7 @@ import re
 import threading
 from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
+from werkzeug.utils import secure_filename
 
 import cv2
 import numpy as np
@@ -43,6 +44,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
+
+# --- Security Configuration ---
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # Limits upload size to 5MB
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+# ------------------------------
 
 class CustomRequest(Request):
     max_form_memory_size = 25 * 1024 * 1024  # Support larger base64-encoded forms
@@ -1405,25 +1415,39 @@ def api_weather():
 def api_analyze():
     if 'file' not in request.files:
         return jsonify({'error': 'No file uploaded'}), 400
+    
     file = request.files['file']
+    
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
-    try:
-        file_bytes = np.frombuffer(file.read(), np.uint8)
-        image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-        if image is None:
-            return jsonify({'error': 'Invalid image file'}), 400
-        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        results = analyze_image(image_rgb)
-        return jsonify({
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            "results": results
-        })
-    except Exception as e:
-        logger.error(f"API analysis error: {e}")
-        return jsonify({'error': str(e)}), 500
-
+        
+    # --- YOUR NEW SECURITY CHECK ---
+    if file and allowed_file(file.filename):
+        # SECURIZE THE FILENAME
+        filename = secure_filename(file.filename)
+        
+        try:
+            file_bytes = np.frombuffer(file.read(), np.uint8)
+            image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+            
+            if image is None:
+                return jsonify({'error': 'Invalid image file'}), 400
+                
+            image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            results = analyze_image(image_rgb)
+            
+            return jsonify({
+                "status": "success",
+                "timestamp": datetime.now().isoformat(),
+                "results": results
+            })
+        except Exception as e:
+            logger.error(f"API analysis error: {e}")
+            return jsonify({'error': str(e)}), 500
+    else:
+        # Reject invalid file types immediately
+        return jsonify({'error': 'Invalid file type. Only PNG, JPG, and JPEG are allowed.'}), 400
+    
 if __name__ == '__main__':
     logger.info("=" * 60)
     logger.info("Agri-Vision Cotton Analysis System")
