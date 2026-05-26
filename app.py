@@ -14,6 +14,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
 from werkzeug.utils import secure_filename
 
+import base64
 import cv2
 import numpy as np
 import torch
@@ -39,6 +40,8 @@ from ultralytics import YOLO
 import json
 from jinja2 import Environment, FileSystemLoader
 from model_registry import registry
+from services.weather_service import generate_weather_recommendations
+from services.yield_service import estimate_yield
 
 load_dotenv()
 
@@ -430,10 +433,10 @@ def preprocess_image_for_resnet(image: np.ndarray, target_size: Tuple[int, int] 
 
 def infer_disease(image):
     # Returns all disease outputs, including confidences for each class
-    if resnet_model:
+    if model_manager.resnet_model:
         processed = preprocess_image_for_resnet(image)
         with torch.no_grad():
-            output = resnet_model(processed)
+            output = model_manager.resnet_model(processed)
             probs = F.softmax(output, dim=1)
             confidence, prediction = torch.max(probs, 1)
         probs_np = probs.numpy()  # shape: (1, 8)
@@ -473,9 +476,9 @@ def infer_growth_stage(image):
         "boxes": [],
         "raw": [],
     }
-    if yolo_model:
+    if model_manager.yolo_model:
         pil_image = Image.fromarray(image)
-        yolo_results = yolo_model(pil_image)
+        yolo_results = model_manager.yolo_model(pil_image)
         boxes = []
         for r in yolo_results:
             if hasattr(r, 'boxes'):
@@ -1235,6 +1238,44 @@ def analyze():
             return redirect(request.url)
 
     return render_template("upload.html")
+
+
+@app.route("/api/explain", methods=["POST"])
+def api_explain():
+    if "file" not in request.files:
+        return jsonify({"status": "error", "error": "No file uploaded"}), 400
+    
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"status": "error", "error": "No file selected"}), 400
+        
+    if not is_allowed_image(file.filename):
+        return jsonify({"status": "error", "error": "Invalid file type. Please upload an image."}), 400
+        
+    try:
+        _, image, image_rgb = read_uploaded_image(file)
+        compressed_rgb = resize_image(image_rgb, MAX_INFERENCE_DIMENSION)
+        
+        # We just need to call analyze_image to generate the Grad-CAM and get results
+        results = analyze_image(compressed_rgb)
+        
+        if "error" in results:
+            return jsonify({"status": "error", "error": results["error"]}), 500
+            
+        disease_result = results.get("disease", {})
+        
+        return jsonify({
+            "status": "success",
+            "heatmap_b64": results.get("grad_cam_image_b64"),
+            "heatmap_only_b64": results.get("heatmap_only_b64"),
+            "target_layer": "ResNet50 layer4[-1]",
+            "image_b64": encode_image_for_display(compressed_rgb),
+            "predicted_class": disease_result.get("predicted_class", "Unknown"),
+            "confidence": disease_result.get("confidence", 0.0)
+        })
+    except Exception as exc:
+        logger.error("Error in API explain endpoint: %s", exc)
+        return jsonify({"status": "error", "error": str(exc)}), 500
 
 
 @app.route("/comparison", methods=["GET", "POST"])

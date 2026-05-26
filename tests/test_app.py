@@ -210,9 +210,9 @@ def test_health_check_endpoint_fallback(client, monkeypatch):
     monkeypatch.setattr(app.model_manager, "yolo_model", None)
     monkeypatch.setattr(app.model_manager, "loaded", True)
     resp = client.get("/health")
-    assert resp.status_code == 200
+    assert resp.status_code == 503
     data = json.loads(resp.data)
-    assert data["status"] == "healthy"
+    assert data["status"] == "degraded"
     assert data["model_loaded"] is False
 
 
