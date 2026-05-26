@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agri-Vision | AI-Powered Cotton Crop Intelligence</title>
-    <!-- Prevent FOUC by setting theme immediately -->
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/favicon.png">
     <script>
         (function() {
             try {
@@ -18,14 +18,281 @@
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- PDF.js for PDF to Image conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <!-- Three.js CDN for interactive 3D model simulation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* ═══════════════════════════════════════
+           CHATBOT WIDGET — Full Premium CSS
+        ═══════════════════════════════════════ */
+
+        /* 1. Widget base: transition-driven collapse (no display:none flash) */
+        .chatbot-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            height: 450px;
+            max-height: calc(100vh - 40px);
+            background: var(--card-bg, var(--bg-card, #ffffff));
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--card-border, var(--border-color, #e0e0e0));
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.3s;
+        }
+
+        /* 2. Collapsed state — smooth fade + slide out */
+        .chatbot-widget.collapsed {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none;
+        }
+
+        /* 3. Launcher bubble */
+        .chatbot-launcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--emerald-green, #2e8b57);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            pointer-events: auto;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.3s,
+                        box-shadow 0.2s;
+        }
+        .chatbot-launcher:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .chatbot-launcher.launcher-hidden {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.5);
+            pointer-events: none;
+        }
+
+        /* 4. Focus-visible for keyboard/accessibility */
+        .chatbot-launcher:focus-visible,
+        .chatbot-close-btn:focus-visible {
+            outline: 2px solid var(--emerald-green, #2e8b57);
+            outline-offset: 2px;
+        }
+
+        /* 5. Header */
+        .chatbot-header {
+            background: var(--emerald-green, #2e8b57);
+            color: #ffffff;
+            padding: 12px 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* 6. Close button */
+        .chatbot-close-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            opacity: 0.85;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .chatbot-close-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* 7. Body + messages */
+        .chatbot-body {
+            flex-grow: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: var(--bg-main, var(--bg-body, #f9f9f9));
+        }
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .ai-message {
+            background: var(--bg-chat-ai, #e8f5e9);
+            color: var(--text-color, #333333);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .user-message {
+            background: var(--emerald-green, #2e8b57);
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* 8. Error message card */
+        .chat-message.error-message {
+            background: var(--error-bg, rgba(220, 53, 69, 0.1));
+            color: var(--error-text, #721c24);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            align-self: center;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            max-width: 90%;
+        }
+
+        /* 9. Input row */
+        .chat-input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid var(--card-border, var(--border-color, #e0e0e0));
+            background: var(--card-bg, var(--bg-card, #ffffff));
+            flex-shrink: 0;
+        }
+        .chat-input-container input {
+            flex-grow: 1;
+            border: 1px solid var(--card-border, var(--border-color, #e0e0e0));
+            border-radius: 20px;
+            padding: 8px 15px;
+            outline: none;
+            background: transparent;
+            color: var(--text-color, #333333);
+        }
+        .chat-send-btn {
+            background: none;
+            border: none;
+            color: var(--emerald-green, #2e8b57);
+            cursor: pointer;
+            padding: 0 10px;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .chat-send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* 10. Bouncing typing indicator */
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px !important;
+            width: fit-content;
+        }
+        .loading-indicator .dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--text-color, #555555);
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: chatbot-pulse 1.2s infinite ease-in-out;
+        }
+        .loading-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes chatbot-pulse {
+            0%, 100% { transform: translateY(0); opacity: 0.4; }
+            50%       { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* 11. Dark theme overrides */
+        [data-theme="dark"] {
+            --bg-chat-ai: rgba(92, 209, 139, 0.15);
+        }
+        [data-theme="dark"] .ai-message {
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .user-message {
+            color: #121212;
+        }
+
+        /* 12. Mobile responsive */
+        @media (max-width: 480px) {
+            .chatbot-widget {
+                width: calc(100% - 30px);
+                right: 15px;
+                bottom: 15px;
+                height: 400px;
+                max-height: calc(100vh - 30px);
+            }
+            .chatbot-launcher {
+                width: 48px;
+                height: 48px;
+                font-size: 1.3rem;
+                bottom: 15px;
+                right: 15px;
+            }
+            .chat-message {
+                font-size: 0.85rem;
+                padding: 8px 12px;
+            }
+        }
+
+        /* 13. Respect prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            .chatbot-widget,
+            .chatbot-launcher,
+            .chatbot-close-btn,
+            .chat-send-btn {
+                transition: none;
+            }
+            .loading-indicator .dot {
+                animation: none;
+                opacity: 0.7;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <!-- Professional Print Frame (Only visible in print) -->
     <div class="print-frame no-print"></div>
 
     <!-- Navigation -->
+
+
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-brand">
@@ -35,10 +302,16 @@
             <ul class="nav-menu">
                 <li><a href="/">Home</a></li>
                 <li><a href="/analyze">Analyze</a></li>
+                <li><a href="/comparison">Field Comparison</a></li>
+
                 <li><a href="/demo">Demo</a></li>
                 <li><a href="/tutorials">Tutorials</a></li>
                 <li><a href="/stories">Stories</a></li>
+<<<<<<< HEAD
                 <li><a href="/model-admin" style="font-weight: bold; color: #667eea;">🤖 Admin</a></li>
+=======
+                <li><a href="/history">History</a></li>
+>>>>>>> 24c83415b8d6226d8c8ec810a0c50b03a4c280ec
                 <li>
                     <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">
                         <i class="fas fa-moon"></i>
@@ -48,7 +321,9 @@
             </ul>
         </div>
     </nav>
-
+<!-- =========================================================
+     Temporary Merge Conflict Text Cleanup
+========================================================= -->
     <!-- Main Content -->
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -84,20 +359,28 @@
                             AI-DRIVEN COTTON INTEGRATION
                         </span>
                     </div>
-                    <h1>
-                        AI-Powered 
-                        <span>Cotton Crop Intelligence</span>
+                
+                    <h1 class="typewriter">
+                        <span class="line1">AI-Powered</span>
+                        <span class="line2">Cotton Crop Intelligence</span>
                     </h1>
-                    <p>Analyze crop maturity, detect plant health issues, and optimize harvest timing using smart real-time deep learning analytics.</p>
+                
+                    <p>
+                        Analyze crop maturity, detect plant health issues, and optimize
+                        harvest timing using smart real-time deep learning analytics.
+                    </p>
+                
                     <div class="hero-cta">
                         <a href="/analyze" class="btn btn-primary">
                             <i class="fas fa-camera"></i> Analyze Image
                         </a>
+                       
                         <a href="/demo" class="btn btn-secondary">
                             <i class="fas fa-play-circle"></i> View Demo
                         </a>
                     </div>
                 </div>
+
                 <div class="hero-image">
                     <div class="scanner-container">
                         <!-- High Tech Corner Brackets -->
@@ -119,7 +402,7 @@
 
                         <!-- Interactive 3D WebGL Crop Scanner Container -->
                         <div class="image-wrapper canvas-3d-wrapper">
-                            <div id="canvas-3d-container" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4;"></div>
+                            <div id="canvas-3d-container" style="position: absolute; inset: 0; width: 100%; height: 80%; z-index: 4;"></div>
                             <div class="image-overlay" style="z-index: 5; pointer-events: none;"></div>
                         </div>
                     </div>
@@ -145,6 +428,7 @@
                     </div>
                 </div>
             </div>
+                
         </section>
 
         <section class="features-section reveal-stagger">
@@ -185,7 +469,24 @@
         </section>
         {% endblock %}
     </main>
+    <!-- =========================================================
+        Agri-Vision Footer Section
 
+        The footer provides quick-access navigation,
+        external platform references, social links,
+        branding information, and additional navigation
+        support for users browsing the platform.
+
+        Recent Improvements:
+        - Removed inactive Twitter/X social icon
+        - Improved footer cleanliness and consistency
+        - Reduced unnecessary external navigation clutter
+        - Enhanced footer maintainability
+        - Improved accessibility and usability
+
+        The footer maintains responsiveness and visual
+        consistency with the futuristic Agri-Vision UI.
+    ========================================================= -->
     <!-- Footer -->
     <footer class="footer no-print reveal reveal-fade-in">
         <div class="footer-container">
@@ -193,61 +494,131 @@
                 <h2 class="footer-title"><i class="fas fa-leaf"></i> Agri-Vision</h2>
                 <p class="footer-subtitle">Empowering cotton farmers with AI-driven insights.</p>
             </div>
+            <!-- =========================================================
+                Footer Navigation Links
+
+                Contains compact navigation shortcuts for
+                important platform pages including tutorials,
+                field comparison, support resources, and
+                AI-powered analysis features.
+
+                Navigation improvements help users access
+                important sections more efficiently while
+                improving overall platform usability.
+            ========================================================= -->
             <div class="footer-links-compact">
                 <a href="/">Home</a>
                 <a href="/analyze">Analyze</a>
+                <a href="/comparison">Field Comparison</a>
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
                 <a href="/demo">Demo</a>
                 <a href="/tutorials">Tutorials</a>
-                <a href="#">Support</a>
+                <a href="{{ url_for('support') }}">Support</a>
             </div>
         </div>
+        <!-- =========================================================
+            Footer Bottom Information Section
+
+            Displays copyright information,
+            branding details, social media references,
+            and additional platform identity elements.
+
+            This section improves professional appearance
+            and strengthens overall UI completeness.
+        ========================================================= -->
         <div class="footer-bottom">
             <p>&copy; <span id="year"></span> Agri-Vision. All rights reserved.</p>
             <p>
                 Smart Cotton Crop Analysis System
             </p>
+
+            <!-- =========================================================
+                Footer Social Media Links Section
+
+                This section contains external social media
+                platform links associated with the Agri-Vision
+                project and contributor profiles.
+
+                Improvements Made:
+                - Removed inactive Twitter/X social icon
+                - Reduced unnecessary footer clutter
+                - Improved footer visual consistency
+                - Kept only actively maintained platforms
+                - Enhanced navigation cleanliness
+
+                The footer now provides a cleaner and more
+                professional appearance while avoiding
+                non-functional or unused external links.
+            ========================================================= -->
+
+
             <div class="footer-social">
-                <a href="#"><i class="fab fa-twitter"></i></a>
                 <a href="https://www.linkedin.com/in/neerugangarh/" target="_blank"><i class="fab fa-linkedin"></i></a>
                 <a href="https://github.com/neeru24/Agri-Vision" target="_blank"><i class="fab fa-github"></i></a>
             </div>
         </div>
     </footer>
+    <!-- =========================================================
+        Frontend Interactive Utility Scripts
 
+        Handles:
+        - Theme toggle interactions
+        - Dynamic UI behavior
+        - Frontend accessibility support
+        - Interactive visual enhancements
+
+        Organized separately for cleaner maintainability.
+    ========================================================= -->
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
 
         // Theme Toggle Logic
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const themeIcon = themeToggleBtn ? themeToggleBtn.querySelector('i') : null;
+        document.addEventListener('DOMContentLoaded', () => {
 
-        function updateThemeIcon() {
-            if (!themeIcon) return;
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            if (isDark) {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            } else {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const themeIcon = document.querySelector('#theme-toggle i');
+
+            // SET DEFAULT THEME
+            if (!document.documentElement.getAttribute('data-theme')) {
+                document.documentElement.setAttribute('data-theme', 'light');
             }
-        }
-
-        if (themeToggleBtn) {
-            updateThemeIcon();
+        
+            // LOAD SAVED THEME
+            const savedTheme = localStorage.getItem('theme');
+        
+            if (savedTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        
+            // TOGGLE BUTTON
             themeToggleBtn.addEventListener('click', () => {
-                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            
+                const currentTheme =
+                    document.documentElement.getAttribute('data-theme');
+            
+                if (currentTheme === 'dark') {
                 
-                if (!isDark) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
+                    document.documentElement.setAttribute('data-theme', 'light');
+                
                     localStorage.setItem('theme', 'light');
+                
+                    themeIcon.classList.replace('fa-sun', 'fa-moon');
+                
+                } else {
+                
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                
+                    localStorage.setItem('theme', 'dark');
+                
+                    themeIcon.classList.replace('fa-moon', 'fa-sun');
                 }
-                updateThemeIcon();
             });
-        }
+        
+        });
     </script>
     <script>
         // Navbar scroll effect
@@ -723,5 +1094,127 @@
             setTimeout(handleResize, 200);
         })();
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+        
+            const container = document.querySelector(".trail-container");
+        
+            const dots = [];
+            const totalDots = 15;
+        
+            let mouseX = 0;
+            let mouseY = 0;
+        
+            // Create dots
+            for (let i = 0; i < totalDots; i++) {
+            
+                const dot = document.createElement("div");
+                dot.classList.add("trail-dot");
+            
+                container.appendChild(dot);
+            
+                dots.push({
+                    el: dot,
+                    x: 0,
+                    y: 0
+                });
+            }
+        
+            // Mouse movement
+            document.addEventListener("mousemove", (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+        
+            // Animate
+            function animate() {
+            
+                let x = mouseX;
+                let y = mouseY;
+            
+                dots.forEach((dot, index) => {
+                
+                    dot.x += (x - dot.x) * 0.35;
+                    dot.y += (y - dot.y) * 0.35;
+                
+                    dot.el.style.left = dot.x + "px";
+                    dot.el.style.top = dot.y + "px";
+                
+                    // Smaller trailing dots
+                    const scale = (totalDots - index) / totalDots;
+                
+                    dot.el.style.transform =
+                        `translate(-50%, -50%) scale(${scale})`;
+                
+                    dot.el.style.opacity = scale;
+                
+                    x = dot.x;
+                    y = dot.y;
+                });
+            
+                requestAnimationFrame(animate);
+            }
+        
+            animate();
+        });
+        </script>
+        <div class="trail-container"></div>
+
+        <!-- Chatbot Launcher Bubble -->
+        <button id="chatbot-launcher" class="chatbot-launcher no-print"
+                title="Chat with Agri-Vision AI"
+                aria-label="Open AI chat assistant"
+                aria-expanded="false">
+            <i class="fas fa-comment-alt"></i>
+        </button>
+
+        <!-- Chatbot Widget (starts collapsed) -->
+        <div id="chatbot-widget" class="chatbot-widget collapsed no-print" role="dialog" aria-label="Agri-Vision AI Chatbot">
+            <div class="chatbot-header">
+                <span><i class="fas fa-comments"></i> Agri-Vision AI</span>
+                <button id="chatbot-close-btn" class="chatbot-close-btn" aria-label="Close chat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chatbot-body">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="chat-message ai-message">Hello! I'm your Agri-Vision AI assistant. Ask me anything about cotton crops, farming practices, pests, or disease prevention.</div>
+                </div>
+                <form id="chat-form" class="chat-input-container" autocomplete="off">
+                    <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off" aria-label="Chat message">
+                    <button type="submit" id="chat-send-btn" class="chat-send-btn" aria-label="Send message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Chatbot Controller -->
+        <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+        <button id="scrollTopBtn">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <script>
+            const scrollBtn =
+                document.getElementById("scrollTopBtn");
+                window.addEventListener("scroll", () => {
+                    if(window.scrollY > 300){
+                    
+                        scrollBtn.style.display = "block";
+                    
+                    }else{
+                    
+                        scrollBtn.style.display = "none";
+                    }
+            });
+
+            scrollBtn.addEventListener("click", () => {
+                window.scrollTo({
+                    top:0,
+                    behavior:"smooth"
+                });
+            });
+
+</script>
 </body>
 </html>

@@ -23,9 +23,34 @@
     /* Theme specific */
     --nav-bg: rgba(255, 255, 255, 0.7);
     --nav-scrolled-bg: rgba(255, 255, 255, 0.95);
+    --footer-bg: #123524;
     
     /* Accent & Utility */
     --ai-blue: #4A90E2;
+    --success-bg: rgba(46, 139, 87, 0.1);
+    --success-text: #1b4332;
+    --success-border: rgba(46, 139, 87, 0.2);
+    --error-bg: rgba(220, 53, 69, 0.1);
+    --error-text: #721c24;
+    --error-border: rgba(220, 53, 69, 0.2);
+    --info-bg: rgba(74, 144, 226, 0.1);
+    --info-text: #0c5460;
+    --info-border: rgba(74, 144, 226, 0.2);
+
+    /* Weather recommendation box */
+    --weather-location-bg: linear-gradient(135deg, #e8f4fd 0%, #d1ecf1 100%);
+    --weather-location-border: #bee5eb;
+    --weather-location-text: #0c5460;
+    --weather-location-muted: #6c757d;
+    --weather-location-input-bg: #ffffff;
+    --weather-location-input-border: #ced4da;
+    --weather-location-input-text: #495057;
+    --weather-location-input-placeholder: #7b8794;
+    --weather-location-button-bg: #17a2b8;
+    --weather-location-button-hover-bg: #138496;
+    --weather-location-button-success-bg: #28a745;
+    --weather-location-button-success-hover-bg: #218838;
+    --weather-location-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
     --glass-bg: rgba(255, 255, 255, 0.65);
     --glass-border: rgba(255, 255, 255, 0.4);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
@@ -106,6 +131,7 @@ nav a[href="/model-admin"]:hover {
     
     --nav-bg: rgba(18, 18, 18, 0.8);
     --nav-scrolled-bg: rgba(18, 18, 18, 0.95);
+    --footer-bg: #061f16;
 
     --soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
     --hover-shadow: 0 10px 30px rgba(60, 179, 113, 0.2);
@@ -118,9 +144,39 @@ nav a[href="/model-admin"]:hover {
 
     /* Theme override fixes */
     --warm-earth: #BCAAA4; /* High contrast warm-sand instead of dark-brown */
-    --footer-bg: #091A11;  /* High contrast deep-green-black */
+    --success-bg: rgba(92, 209, 139, 0.15);
+    --success-text: #80ffb2;
+    --success-border: rgba(92, 209, 139, 0.3);
+    --error-bg: rgba(255, 107, 107, 0.15);
+    --error-text: #ff8e8e;
+    --error-border: rgba(255, 107, 107, 0.3);
+    --info-bg: rgba(100, 181, 246, 0.15);
+    --info-text: #90caf9;
+    --info-border: rgba(100, 181, 246, 0.3);
+
+        --weather-location-bg: linear-gradient(135deg, rgba(22, 27, 33, 0.96) 0%, rgba(17, 24, 39, 0.98) 100%);
+        --weather-location-border: rgba(96, 165, 250, 0.18);
+        --weather-location-text: #dbeafe;
+        --weather-location-muted: #94a3b8;
+        --weather-location-input-bg: rgba(15, 23, 42, 0.95);
+        --weather-location-input-border: rgba(148, 163, 184, 0.22);
+        --weather-location-input-text: #e2e8f0;
+        --weather-location-input-placeholder: #94a3b8;
+        --weather-location-button-bg: #2563eb;
+        --weather-location-button-hover-bg: #1d4ed8;
+        --weather-location-button-success-bg: #16a34a;
+        --weather-location-button-success-hover-bg: #15803d;
+        --weather-location-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+      /* High contrast deep-green-black */
     --footer-text: #E0EAE2;
     --footer-muted: rgba(224, 234, 226, 0.6);
+}
+
+[data-theme="dark"] .btn-primary:hover,
+[data-theme="dark"] .btn-primary:hover *,
+[data-theme="dark"] .nav-menu .btn-primary:hover {
+    color: #000000 !important;
+    opacity: 1 !important;
 }
 
 * {
@@ -138,7 +194,35 @@ body {
     font-size: 15px;
     transition: background-color 0.4s ease, color 0.4s ease;
 }
+/* Keep default cursor */
+body {
+    cursor: default;
+}
 
+/* Trail dots */
+.trail-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    pointer-events: none;
+    z-index: 99999;
+
+    background: #4ade80;
+
+    box-shadow:
+        0 0 10px #4ade80,
+        0 0 20px #4ade80,
+        0 0 40px rgba(74, 222, 128, 0.7);
+
+    transform: translate(-50%, -50%);
+
+    opacity: 0.8;
+}
 .text-center {
     text-align: center;
 }
@@ -175,7 +259,7 @@ body {
 }
 
 .main-content {
-    padding-top: 6.5rem; /* Space for the floating navbar */
+    padding-top: 120px; /* Space for the floating navbar */
 }
 
 /* Glassmorphism Utility */
@@ -215,7 +299,174 @@ body {
     flex: 0 0 100%;
     max-width: 100%;
 }
+#scrollTopBtn{
+    position:fixed;
+    bottom:90px;
+    right:20px;
+    width:55px;
+    height:55px;
+    border:none;
+    border-radius:50%;
+    background:linear-gradient(
+        135deg,
+        #22c55e,
+        #16a34a
+    );
 
+    color:white;
+    font-size:1.2rem;
+    cursor:pointer;
+    display:none;
+    z-index:999;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition:0.3s;
+}
+
+#scrollTopBtn:hover{
+
+    transform:translateY(-5px) scale(1.05);
+}
+/* SMART INSIGHTS PANEL */
+
+.smart-insights-panel {
+    margin-top: 2rem;
+    padding: 1.8rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f8fffb 0%, #eefaf2 100%);
+    border: 1px solid rgba(46, 139, 87, 0.15);
+    box-shadow: 0 10px 30px rgba(46, 139, 87, 0.08);
+}
+
+.insights-header {
+    text-align: center;
+    margin-bottom: 1.8rem;
+}
+
+.insights-header h3 {
+    color: var(--emerald-green);
+    font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.insights-header p {
+    opacity: 0.7;
+    font-size: 0.92rem;
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.2rem;
+}
+
+.insight-card {
+    background: white;
+    border-radius: 18px;
+    padding: 1.4rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(46, 139, 87, 0.08);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+}
+
+.insight-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 24px rgba(46, 139, 87, 0.12);
+}
+
+.insight-icon {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+}
+
+.insight-card h4 {
+    margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+.insight-value {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.7rem;
+    color: var(--emerald-green);
+}
+
+.insight-tag {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.insight-tag.good {
+    background: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+.insight-tag.warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+}
+
+.insight-tag.success {
+    background: rgba(34, 197, 94, 0.15);
+    color: #15803d;
+}
+
+/* Health Meter */
+
+.health-progress {
+    width: 100%;
+    height: 10px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 1rem 0 0.6rem;
+}
+
+.health-progress-bar {
+    width: 86%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+    animation: pulseBar 2s infinite;
+}
+
+.health-score {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #15803d;
+}
+
+@keyframes pulseBar {
+    0% {
+        opacity: 0.7;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.7;
+    }
+}
+
+/* MOBILE RESPONSIVE */
+
+@media (max-width: 768px) {
+
+    .smart-insights-panel {
+        padding: 1.2rem;
+    }
+
+    .insights-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .insight-card {
+        padding: 1.2rem;
+    }
+}
 @media (min-width: 768px) {
     .col-md-6 {
         flex: 0 0 50%;
@@ -225,80 +476,42 @@ body {
 
 @media (min-width: 992px) {
     .col-lg-4 {
-        flex: 0 0 33.3333%;
-        max-width: 33.3333%;
+        flex: 0 0 30%;
+        max-width: 30%;
     }
 }
-
-.card {
-    background: var(--card-bg);
-    color: var(--text-main);
-    border-radius: 20px;
-    border: 1px solid var(--card-border);
-    box-shadow: var(--card-shadow);
-    overflow: hidden;
-    transition: var(--transition-smooth);
-}
-
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--card-hover-shadow);
-}
-
-.card-body {
-    padding: 1.5rem;
+.typewriter {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 8px;
+    line-height: 1.1;
+    width:100%;
+    align-items:center;
+    justify-content:center;
 }
 
-.card .lead-text {
-    color: var(--text-muted);
-    opacity: 0.85;
+.typewriter span {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 3px solid #67e8f9;
 }
 
-.card .stat-label {
-    color: var(--emerald-green);
+/* First Line */
+.typewriter .line1,
+
+/* Second Line */
+.typewriter .line2 {
+    border-right: 3px solid #4ade80;
 }
 
-.card .stat-value {
-    color: var(--deep-forest);
-    font-size: 1.2rem;
-    margin-left: 0.5rem;
-}
+/* Typing animations */
+
+/* Cursor blink */
+
+/* Responsive */
 
 /* Animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-8px); }
-    100% { transform: translateY(0px); }
-}
-
-.fade-in {
-    animation: fadeInUp 0.6s ease forwards;
-}
 
 /* Navigation */
 .navbar {
@@ -467,13 +680,24 @@ body {
     transform: translateY(-1px);
 }
 
+.nav-menu .btn-primary:hover {
+    color: #000000 !important;
+}
+
 .nav-menu .btn-primary {
     padding: 0.5rem 1.2rem;
     font-size: 0.85rem;
     border-radius: 50px;
     box-shadow: 0 4px 12px rgba(46, 139, 87, 0.2);
+
+    color: white !important;
+    opacity: 1 !important;
 }
 
+.nav-menu .btn-primary:hover {
+    color: black !important;
+    opacity: 1 !important;
+}
 /* Hero Section Redesign & Upgrades */
 .hero {
     position: relative;
@@ -565,13 +789,13 @@ body {
 
 .hero-container {
     position: relative;
-    max-width: 1100px;
+    max-width: 1200px;
     margin: 0 auto;
+    padding: 0 1.5rem;
     display: grid;
     grid-template-columns: 1.15fr 0.85fr;
     gap: 4rem;
     align-items: center;
-    z-index: 3;
     width: 100%;
 }
 
@@ -700,6 +924,7 @@ body {
 .btn-primary:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 30px rgba(46, 139, 87, 0.35);
+    color: #000000 !important;
 }
 
 .btn-primary:hover::before {
@@ -752,6 +977,8 @@ body {
     border: 1px solid var(--card-border);
     box-shadow: var(--card-shadow);
     transition: var(--transition-smooth);
+    height:350px;
+    width:500px;
 }
 
 .scanner-container:hover {
@@ -779,6 +1006,7 @@ body {
     border: 1px solid rgba(46, 139, 87, 0.15);
     box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
     transition: background 0.4s ease, border-color 0.4s ease;
+    /* margin-right: 50px; */
 }
 
 [data-theme="dark"] .canvas-3d-wrapper {
@@ -1004,7 +1232,7 @@ body {
 .floating-telemetry-2 {
     position: absolute;
     top: -25px;
-    right: -20px;
+    right: 150px;
     background: var(--card-bg);
     padding: 0.8rem 1.2rem;
     border-radius: 16px;
@@ -1044,33 +1272,50 @@ body {
 
 /* Responsiveness */
 @media (max-width: 991px) {
+
     .hero-container {
+
         grid-template-columns: 1fr;
-        gap: 4rem;
+
         text-align: center;
+
+        gap: 3rem;
     }
-    
-    .hero-content h1 {
-        font-size: 2.6rem;
+
+    .hero-content {
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        text-align:center;
+        margin:0 auto;
     }
-    
-    .hero-content p {
-        margin-left: auto;
-        margin-right: auto;
-    }
-    
-    .hero-cta {
+
+    .hero-image {
+        order: 2;
+        display: flex;
         justify-content: center;
     }
-    
-    .floating-telemetry-1 {
-        left: 20px;
-        bottom: -15px;
+    .hero-content p {
+        max-width:650px;
+        margin-left:auto;
+        margin-right:auto;
     }
-    
-    .floating-telemetry-2 {
-        right: 20px;
-        top: -15px;
+    .scanner-container {
+        width: 100%;
+        max-width: 450px;
+        height: auto;
+    }
+    .typewriter {
+        align-items:center;
+    }
+    .hero-cta {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .hero-badge-wrapper {
+        display:flex;
+        justify-content:center;
     }
 }
 
@@ -1116,12 +1361,36 @@ body {
     min-height: 220px; /* More compact */
 }
 
+/* =========================================================
+   Enhanced Interactive Hover Animation
+   Creates stronger depth, floating motion,
+   glowing borders, and immersive UI feedback.
+========================================================= */
+
 .feature-card:hover {
-    transform: translateY(-8px);
-    background: var(--card-bg);
-    box-shadow: var(--hover-shadow);
-    border-color: rgba(46, 139, 87, 0.08);
+    transform:
+        translateY(-18px)
+        scale(1.04);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(20, 35, 28, 0.96),
+            rgba(10, 18, 14, 0.98)
+        );
+
+    border-color:
+        rgba(76, 255, 153, 0.35);
+
+    box-shadow:
+        0 25px 60px rgba(0,0,0,0.35),
+        0 0 30px rgba(76,255,153,0.18),
+        0 0 60px rgba(76,255,153,0.08);
+
+    cursor: pointer;
 }
+
+
 
 .feature-icon-wrapper {
     width: 55px; /* Reduced from 70px */
@@ -1135,6 +1404,128 @@ body {
     color: var(--emerald-green);
     margin-bottom: 1.5rem;
     transition: var(--transition-smooth);
+}
+/* =========================================================
+   Floating Icon Hover Animation
+========================================================= */
+
+.feature-card:hover .feature-icon-wrapper {
+    transform:
+        scale(1.15)
+        rotate(6deg);
+
+    box-shadow:
+        0 0 18px rgba(76,255,153,0.25);
+
+    background:
+        rgba(76,255,153,0.12);
+}
+
+/* =========================================================
+   UI Enhancement Module:
+   Precision Farming Interactive Feature Cards
+
+   Purpose:
+   This styling enhancement modernizes the homepage
+   feature-card system by introducing smoother
+   animations, hover transitions, visual elevation,
+   glowing accents, and interactive feedback.
+
+   Improvements Included:
+   - Smooth hover animations
+   - Dynamic elevation effects
+   - Neon accent glow
+   - Animated top border sweep
+   - Icon interaction animations
+   - Better visual hierarchy
+   - Improved futuristic UI consistency
+   - Enhanced user engagement
+
+   These changes improve the overall user experience
+   while maintaining the Agri-Vision futuristic
+   design language.
+========================================================= */
+
+.feature-card {
+    position: relative;
+    overflow: hidden;
+
+    transition:
+        transform 0.4s ease,
+        box-shadow 0.4s ease,
+        border-color 0.4s ease,
+        background 0.4s ease;
+
+    will-change: transform;
+}
+
+/* =========================================================
+   Interactive Hover Effects
+========================================================= */
+
+.feature-card:hover {
+    transform: translateY(-12px) scale(1.02);
+
+    box-shadow:
+        0 20px 45px rgba(0,0,0,0.28),
+        0 0 25px rgba(76,255,153,0.12);
+}
+
+/* =========================================================
+   Animated Accent Border Effect
+========================================================= */
+
+.feature-card::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: -100%;
+
+    width: 100%;
+    height: 4px;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        #4cff99,
+        transparent
+    );
+
+    transition: 0.6s ease;
+}
+
+.feature-card:hover::before {
+    left: 100%;
+}
+
+/* =========================================================
+   Feature Icon Animation Effects
+========================================================= */
+
+.feature-card i {
+    transition:
+        transform 0.4s ease,
+        color 0.4s ease;
+}
+
+.feature-card:hover i {
+    transform: scale(1.18) rotate(4deg);
+
+    color: #4cff99;
+}
+
+/* =========================================================
+   Typography Hover Improvements
+========================================================= */
+
+.feature-card h3 {
+    transition: color 0.3s ease;
+}
+
+.feature-card:hover h3 {
+    color: #4cff99;
 }
 
 .feature-card:hover .feature-icon-wrapper {
@@ -1204,19 +1595,106 @@ body {
     color: var(--deep-forest);
 }
 
+
+/* =========================================================
+   Enhanced Results Page Spacing & Visual Hierarchy
+   Improves readability, section separation, and layout flow
+========================================================= */
+
+.results-card {
+    padding: 2.5rem;
+    gap: 2rem;
+}
+
+.result-card {
+    margin-top: 2rem;
+    padding: 2rem;
+    border-radius: 24px;
+}
+
+.results-section-title {
+    margin-bottom: 1.4rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.results-list li {
+    margin-bottom: 1rem;
+    line-height: 1.8;
+}
+
+.results-table {
+    margin-top: 1.5rem;
+    overflow: hidden;
+    border-radius: 18px;
+}
+
+.results-table th,
+.results-table td {
+    padding: 1rem 1.2rem;
+}
+
+.results-footer {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.results-details {
+    margin-top: 2rem;
+}
+
+.results-pre {
+    padding: 1.5rem;
+    border-radius: 16px;
+    line-height: 1.6;
+}
+
+/* Better spacing for mobile devices */
+@media (max-width: 768px) {
+
+    .results-card {
+        padding: 1.4rem;
+    }
+
+    .result-card {
+        padding: 1.4rem;
+    }
+
+    .results-section-title {
+        font-size: 1.1rem;
+    }
+}
+
 /* Compact Footer */
 .footer {
+    background: var(--footer-bg);
+    color: white;
     /* Dark forest green footer */
     background: #184b34;
     color: #ffffff;
     padding: 2.5rem 2rem 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
-
+/*
+|--------------------------------------------------------------------------
+| Theme Management System
+|--------------------------------------------------------------------------
+| This section handles dynamic theme switching functionality across
+| the entire application. It ensures that user preferences are saved
+| locally and automatically restored when the user revisits the site.
+|
+| Features Included:
+| - Dark mode toggle
+| - Theme persistence using localStorage
+| - Smooth UI transitions
+| - Accessibility-friendly color updates
+| - Dynamic icon switching
+|--------------------------------------------------------------------------
+*/
 [data-theme="dark"] .footer {
-    background: #00180d;
+    background: #131313;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background: var(--footer-bg);
     color: var(--footer-text);
     padding: 2.5rem 2rem 1.5rem; /* Significantly reduced padding */
     transition: var(--transition-smooth);
@@ -1291,6 +1769,21 @@ body {
     color: rgba(255,255,255,1);
     transform: translateY(-3px);
 }
+/*
+|--------------------------------------------------------------------------
+| Responsive Navigation Handling
+|--------------------------------------------------------------------------
+| Handles all navbar interactions including:
+| - Mobile menu toggle
+| - Smooth scrolling navigation
+| - Active section highlighting
+| - Dynamic navbar background updates
+| - Accessibility improvements for keyboard users
+|
+| The goal is to provide a seamless navigation experience across
+| desktop, tablet, and mobile devices.
+|--------------------------------------------------------------------------
+*/
 
 @media (max-width: 768px) {
     .footer-container {
@@ -1353,6 +1846,716 @@ body {
 }
 
 
+/* =========================================================
+   Demo Analysis Visual Hierarchy Enhancement System
+   ---------------------------------------------------------
+   This module focuses on improving the readability and
+   visual organization of AI-generated crop analysis data.
+
+   Goals:
+   - Improve user attention flow
+   - Create better spacing rhythm
+   - Enhance card distinction
+   - Improve mobile readability
+   - Modernize analytics presentation
+   - Maintain accessibility standards
+
+   Designed specifically for:
+   - Disease prediction cards
+   - Confidence tables
+   - Recommendation sections
+   - Crop growth analysis panels
+   ========================================================= */
+
+/* =========================================================
+   Enhanced Demo Analysis Result Card UI Improvements
+   =========================================================
+
+   This styling enhancement improves the visual hierarchy,
+   spacing, readability, and modern appearance of the
+   analysis result cards shown in the Demo page.
+
+   Improvements Included:
+   - Better card spacing
+   - Improved section separation
+   - Softer shadows and hover effects
+   - Enhanced typography readability
+   - Better responsive behavior
+   - Cleaner visual hierarchy
+   - Modern glassmorphism-inspired UI polish
+   - Improved table spacing and structure
+   - Smoother transition animations
+
+   These updates improve user engagement while maintaining
+   the existing Agri-Vision design system consistency.
+   ========================================================= */
+
+.result-card,
+.analysis-card,
+.demo-card {
+    border-radius: 24px;
+    padding: 2rem;
+    transition: all 0.35s ease;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(93, 211, 139, 0.12);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.18);
+}
+
+.result-card:hover,
+.analysis-card:hover,
+.demo-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 45px rgba(93, 211, 139, 0.18);
+}
+
+.result-card h2,
+.analysis-card h2,
+.demo-card h2 {
+    margin-bottom: 1rem;
+    letter-spacing: 0.3px;
+}
+
+.result-card p,
+.analysis-card p,
+.demo-card p {
+    line-height: 1.8;
+    opacity: 0.95;
+}
+
+.result-card table,
+.analysis-card table {
+    margin-top: 1.2rem;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.result-card tr,
+.analysis-card tr {
+    transition: background 0.2s ease;
+}
+
+.result-card tr:hover,
+.analysis-card tr:hover {
+    background: rgba(93, 211, 139, 0.05);
+}
+
+/* =========================================================
+   Mobile Responsiveness Enhancements
+   ========================================================= */
+
+@media (max-width: 768px) {
+    .result-card,
+    .analysis-card,
+    .demo-card {
+        padding: 1.4rem;
+        border-radius: 18px;
+    }
+
+    .result-card h2,
+    .analysis-card h2,
+    .demo-card h2 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .result-card,
+    .analysis-card,
+    .demo-card {
+        padding: 1rem;
+    }
+
+    .result-card table,
+    .analysis-card table {
+        font-size: 0.9rem;
+    }
+}
+
+/* Field Photo Comparison */
+.comparison-page {
+    padding-bottom: 5rem;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(76, 175, 80, 0.14), transparent 28%),
+        radial-gradient(circle at 85% 20%, rgba(74, 144, 226, 0.09), transparent 26%),
+        var(--bg-main);
+}
+
+.comparison-shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.comparison-hero {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    align-items: center;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--soft-shadow);
+    background:
+        linear-gradient(135deg, rgba(46, 139, 87, 0.15), rgba(255, 255, 255, 0.66)),
+        var(--glass-bg);
+}
+
+[data-theme="dark"] .comparison-hero {
+    background:
+        linear-gradient(135deg, rgba(60, 179, 113, 0.18), rgba(30, 30, 30, 0.72)),
+        var(--glass-bg);
+}
+
+.comparison-kicker {
+    display: inline-flex;
+    margin-bottom: 0.75rem;
+    color: var(--emerald-green);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.comparison-hero h1 {
+    color: var(--deep-forest);
+    font-size: 2.45rem;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+}
+
+.comparison-hero p {
+    color: var(--text-muted);
+    max-width: 680px;
+    font-size: 1rem;
+}
+
+.comparison-hero-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem;
+    border-radius: 16px;
+    background: var(--card-bg);
+    color: var(--deep-forest);
+    box-shadow: var(--soft-shadow);
+    min-width: 220px;
+}
+
+.comparison-hero-badge i {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    color: white;
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+}
+
+.comparison-upload-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.comparison-upload-card,
+.ai-summary-card,
+.ai-recommendation-card,
+.comparison-summary-card {
+    padding: 1.5rem;
+    box-shadow: var(--soft-shadow);
+    transition: var(--transition-smooth);
+}
+
+.comparison-upload-card:hover,
+.ai-summary-card:hover,
+.ai-recommendation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--hover-shadow);
+}
+
+.comparison-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.comparison-error-card,
+.comparison-warning-card {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: flex-start;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 165, 0, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--light-text);
+    box-shadow: var(--soft-shadow);
+    margin-bottom: 1.5rem;
+}
+
+.comparison-error-card {
+    border-color: rgba(255, 85, 85, 0.25);
+}
+
+.comparison-warning-card {
+    border-color: rgba(255, 206, 0, 0.25);
+}
+
+.comparison-error-icon,
+.comparison-warning-icon {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    border-radius: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.comparison-error-icon i {
+    color: #ff6b6b;
+}
+
+.comparison-warning-icon i {
+    color: #ffd166;
+}
+
+.comparison-card-header h2 {
+    color: var(--deep-forest);
+    font-size: 1.15rem;
+    margin-bottom: 0.2rem;
+}
+
+.comparison-card-header p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.comparison-step {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.comparison-dropzone {
+    position: relative;
+    overflow: hidden;
+    min-height: 190px;
+    border: 1.5px dashed rgba(46, 139, 87, 0.45);
+    border-radius: 18px;
+    background: rgba(46, 139, 87, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    padding: 1.5rem;
+    cursor: pointer;
+    text-align: center;
+    transition: var(--transition-smooth);
+}
+
+.comparison-dropzone:hover {
+    border-color: var(--emerald-green);
+    background: rgba(46, 139, 87, 0.1);
+    transform: translateY(-2px);
+}
+
+.comparison-dropzone input {
+    display: none;
+}
+
+.comparison-upload-icon {
+    width: 58px;
+    height: 58px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+    color: white;
+    font-size: 1.35rem;
+    box-shadow: 0 14px 28px rgba(46, 139, 87, 0.18);
+}
+
+.comparison-dropzone strong {
+    color: var(--deep-forest);
+    font-size: 1rem;
+}
+
+.comparison-dropzone small {
+    color: var(--text-muted);
+}
+
+.comparison-preview-frame {
+    margin-top: 1rem;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+}
+
+.comparison-preview-frame img {
+    display: none;
+    width: 100%;
+    height: 230px;
+    object-fit: cover;
+}
+
+.comparison-preview-frame img[src]:not([src=""]) {
+    display: block;
+}
+
+.comparison-preview-frame span {
+    display: block;
+    padding: 0.85rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    overflow-wrap: anywhere;
+}
+
+.comparison-submit-row {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+}
+
+.comparison-submit {
+    min-width: min(100%, 320px);
+    justify-content: center;
+}
+
+.comparison-results {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.comparison-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    border-left: 5px solid var(--emerald-green);
+}
+
+.comparison-summary-card.trend-declined {
+    border-left-color: #dc3545;
+}
+
+.comparison-summary-card.trend-stable {
+    border-left-color: var(--ai-blue);
+}
+
+.comparison-summary-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.trend-declined .comparison-summary-icon,
+.comparison-result-card.trend-declined i {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.12);
+}
+
+.trend-stable .comparison-summary-icon,
+.comparison-result-card.trend-stable i {
+    color: var(--ai-blue);
+    background: rgba(74, 144, 226, 0.12);
+}
+
+.comparison-summary-card h2 {
+    color: var(--deep-forest);
+    margin-bottom: 0.35rem;
+}
+
+.comparison-summary-card p {
+    color: var(--text-muted);
+}
+
+.comparison-metrics-grid,
+.comparison-analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.comparison-analysis-grid {
+    grid-template-columns: 1.4fr 1fr;
+}
+
+.comparison-analysis-grid.recommendation-only {
+    grid-template-columns: 1fr;
+}
+
+.comparison-result-card {
+    position: relative;
+    padding: 1.4rem;
+    border-radius: 18px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--soft-shadow);
+    overflow: hidden;
+}
+
+.comparison-result-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: linear-gradient(90deg, var(--emerald-green), var(--fresh-green));
+}
+
+.comparison-result-card > span {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+
+.comparison-result-card h3 {
+    color: var(--deep-forest);
+    font-size: 1.45rem;
+    line-height: 1.15;
+    margin-bottom: 0.35rem;
+}
+
+.comparison-result-card p,
+.comparison-result-card strong {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+}
+
+.comparison-result-card strong {
+    display: block;
+    color: var(--deep-forest);
+    margin-top: 0.55rem;
+}
+
+.comparison-result-card.delta {
+    min-height: 190px;
+}
+
+.comparison-result-card.delta h3 {
+    font-size: 2rem;
+}
+
+.comparison-result-card.delta i {
+    position: absolute;
+    right: 1.2rem;
+    bottom: 1.1rem;
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-size: 1.5rem;
+}
+
+.comparison-score-bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(46, 139, 87, 0.12);
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.comparison-score-bar span {
+    display: block;
+    height: 100%;
+    min-width: 3%;
+    max-width: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--emerald-green), var(--fresh-green));
+}
+
+.remove-image-btn{
+    display: none;
+
+    position: absolute;
+    top: 10px;
+    right: 10px;
+
+    width: 42px;
+    height: 42px;
+
+    border: none;
+    border-radius: 50%;
+
+    background: rgba(0,0,0,0.72);
+    color: white;
+
+    cursor: pointer;
+    z-index: 20;
+
+    align-items: center;
+    justify-content: center;
+
+    font-size: 20px;
+    font-weight: bold;
+
+    backdrop-filter: blur(4px);
+}
+
+.remove-image-btn:hover{
+    background: rgba(0,0,0,0.9);
+    transform: scale(1.05);
+}
+
+.ai-summary-card ul {
+    list-style: none;
+    display: grid;
+    gap: 0.85rem;
+}
+
+.ai-summary-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    color: var(--deep-forest);
+    padding: 0.9rem;
+    border-radius: 14px;
+    background: rgba(46, 139, 87, 0.07);
+}
+
+.ai-summary-card li i {
+    color: var(--emerald-green);
+    margin-top: 0.2rem;
+}
+
+.ai-recommendation-card h2 {
+    color: var(--deep-forest);
+    margin-bottom: 0.75rem;
+}
+
+.ai-recommendation-card p {
+    color: var(--text-muted);
+}
+
+.comparison-mini-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: 1.5rem;
+}
+
+.comparison-mini-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 999px;
+    background: var(--soft-mint);
+    color: var(--emerald-green);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+@media (max-width: 900px) {
+    .comparison-hero,
+    .comparison-summary-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .comparison-upload-grid,
+    .comparison-metrics-grid,
+    .comparison-analysis-grid {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 576px) {
+
+    .hero {
+
+        padding: 7rem 1rem 4rem;
+    }
+
+    .hero-content h1 {
+
+        font-size: 2.2rem;
+    }
+
+    .hero-content p {
+
+        font-size: 1rem;
+    }
+
+    .hero-cta {
+
+        flex-direction: column;
+
+        width: 100%;
+    }
+
+    .hero-cta .btn {
+
+        width: 100%;
+
+        justify-content: center;
+    }
+
+    .scanner-container {
+
+        max-width: 100%;
+    }
+}
+@media (max-width: 560px) {
+    .comparison-shell {
+        padding: 0 1rem;
+    }
+
+    .comparison-hero,
+    .comparison-upload-card,
+    .ai-summary-card,
+    .ai-recommendation-card,
+    .comparison-summary-card {
+        padding: 1.1rem;
+        border-radius: 16px;
+    }
+
+    .comparison-hero h1 {
+        font-size: 1.9rem;
+    }
+
+    .comparison-preview-frame img {
+        height: 190px;
+    }
+}
+
+.footer-bottom {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    opacity: 0.6;
+    font-size: 0.9rem;
+}
+
 
 /* Alerts */
 .alert-container {
@@ -1389,6 +2592,113 @@ body {
     background: var(--info-bg);
     color: var(--info-text);
     border-color: var(--info-border);
+}
+
+/* Weather-aware location recommendation box */
+.weather-location-section {
+    background: var(--weather-location-bg);
+    border: 1px solid var(--weather-location-border);
+    color: var(--weather-location-text);
+    box-shadow: var(--weather-location-shadow);
+}
+
+.weather-location-title {
+    color: var(--weather-location-text);
+}
+
+.weather-location-subtitle,
+.weather-location-status {
+    color: var(--weather-location-muted);
+}
+
+.weather-location-status {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+}
+
+.weather-location-status.is-success {
+    color: var(--success-text);
+}
+
+.weather-location-status.is-error {
+    color: var(--error-text);
+}
+
+.weather-location-controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.weather-location-input-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+.weather-location-input {
+    width: 100%;
+    padding: 0.5rem 2.2rem 0.5rem 0.75rem;
+    border: 1px solid var(--weather-location-input-border);
+    border-radius: 8px;
+    background: var(--weather-location-input-bg);
+    color: var(--weather-location-input-text);
+    font-size: 0.9rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s, background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.weather-location-input::placeholder {
+    color: var(--weather-location-input-placeholder);
+}
+
+.weather-location-input:focus {
+    outline: none;
+    border-color: var(--ai-blue);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.12);
+}
+
+.weather-location-tick {
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    display: none;
+}
+
+.weather-location-button {
+    padding: 0.5rem 1rem;
+    background: var(--weather-location-button-bg);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: background-color 0.2s, transform 0.2s, opacity 0.2s;
+}
+
+.weather-location-button:hover:not(:disabled) {
+    background: var(--weather-location-button-hover-bg);
+}
+
+.weather-location-button.is-success {
+    background: var(--weather-location-button-success-bg);
+}
+
+.weather-location-button.is-success:hover:not(:disabled) {
+    background: var(--weather-location-button-success-hover-bg);
+}
+
+.weather-location-button:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.weather-location-alert {
+    margin-top: 1rem;
 }
 
 .success-text {
@@ -1524,16 +2834,6 @@ body {
     height: auto;
     pointer-events: none;
     border-radius: 13px;
-}
-
-.results-table {
-    margin-bottom: 2.2rem;
-    min-width: 60%;
-    border-collapse: collapse;
-    border-radius: 12px;
-    overflow: hidden;
-    color: var(--text-main);
-    box-shadow: var(--glass-shadow);
 }
 
 .results-table th {
@@ -1789,4 +3089,1510 @@ body {
     .section-header h2 {
         font-size: 1.8rem;
     }
+}
+
+fix-stories-card-alignment
+
+/* ==========================================================
+   Stories Page Card Alignment & Layout Improvements
+
+   This styling enhancement improves the Stories page
+   card structure by creating better spacing balance,
+   responsive alignment, equal-height behavior, and
+   smoother visual consistency across all story cards.
+
+   Main Improvements:
+   - Equal height story cards
+   - Improved card responsiveness
+   - Better spacing consistency
+   - Reduced unnecessary empty space
+   - Modern hover interaction effects
+   - Cleaner layout alignment
+========================================================== */
+
+.stories-grid .card {
+    height: 100%;
+    border-radius: 24px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.stories-grid .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 35px rgba(93, 211, 139, 0.15);
+}
+
+.stories-grid .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+}
+
+@media (max-width: 768px) {
+    .stories-grid {
+        gap: 1.5rem;
+    }
+}
+
+
+/* Smooth interaction animation improvements */
+
+.stories-grid .card {
+    will-change: transform;
+}
+
+.stories-grid .card:hover {
+    cursor: pointer;
+}
+
+/* Responsive container spacing improvements */
+
+.stories-header {
+    max-width: 720px;
+    margin-inline: auto;
+}
+
+.stories-grid {
+    row-gap: 2rem;
+}
+
+.stories-grid .card {
+    width: 100%;
+
+
+    /* =========================================================
+   Advanced Stories Page Responsiveness Improvements
+
+   This enhancement improves:
+   - Card alignment consistency
+   - Responsive grid spacing
+   - Mobile readability
+   - Hover interaction smoothness
+   - Layout adaptability for smaller screens
+   - Visual balance across device sizes
+
+   The goal is to create a cleaner,
+   more modern, and responsive stories page
+   experience while preserving the Agri-Vision
+   futuristic UI design language.
+========================================================= */
+
+/* Smooth interaction animation improvements */
+
+.stories-grid .card {
+    will-change: transform;
+
+    width: 100%;
+}
+
+/* Improved hover interaction */
+
+.stories-grid .card:hover {
+    transform:
+        translateY(-10px)
+        scale(1.02);
+
+    box-shadow:
+        0 18px 40px rgba(0,0,0,0.28),
+        0 0 20px rgba(76,255,153,0.10);
+
+    cursor: pointer;
+}
+
+/* Responsive container spacing improvements */
+
+.stories-header {
+    max-width: 720px;
+
+    margin-inline: auto;
+}
+
+.stories-grid {
+    row-gap: 2rem;
+}
+
+/* =========================================================
+   Tablet Responsive Optimization
+========================================================= */
+
+@media (max-width: 992px) {
+
+    .stories-grid {
+        gap: 1.8rem;
+    }
+
+    .stories-grid .card {
+        min-height: 100%;
+    }
+}
+
+/* =========================================================
+   Mobile Responsive Optimization
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .stories-grid {
+        grid-template-columns: 1fr;
+
+        gap: 1.5rem;
+    }
+
+    .stories-grid .card {
+        border-radius: 20px;
+
+        padding: 1.5rem;
+    }
+
+    .stories-grid .card-body {
+        gap: 1rem;
+    }
+}
+
+/* =========================================================
+   Small Device Readability Improvements
+========================================================= */
+
+@media (max-width: 480px) {
+
+    .stories-grid .card h3 {
+        font-size: 1.2rem;
+    }
+
+    .stories-grid .card p {
+        line-height: 1.7;
+    }
+
+    .stories-grid {
+        gap: 1.2rem;
+    }
+}
+
+/* ==========================================================
+   Enhanced Demo Results Page UI/UX Styling
+   ----------------------------------------------------------
+   This styling block modernizes the Results page by
+   introducing glassmorphism-inspired containers,
+   smoother hover interactions, cleaner spacing,
+   improved section hierarchy, and enhanced visual
+   consistency across all result components.
+
+   Main Improvements:
+   - Modern reusable result cards
+   - Animated hover elevation effects
+   - Improved table interactions
+   - Better spacing and readability
+   - Responsive-friendly structure
+   - Enhanced dark mode appearance
+   - Dynamic health score visualization
+========================================================== */
+
+/* Enhanced Results UI */
+}
+.result-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 22px;
+    padding: 1.8rem;
+    margin-top: 1.8rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(12px);
+}
+
+.result-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(93, 211, 139, 0.12);
+}
+
+/* ==========================================================
+   Interactive Results Table Styling
+
+   Improved the prediction results table to make
+   disease probability data easier to scan and
+   visually interpret for end users.
+
+   Improvements Added:
+   - Rounded table container
+   - Better row spacing
+   - Smooth hover highlighting
+   - Enhanced readability in dark mode
+   - Improved visual feedback during interaction
+========================================================== */
+.results-table {
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.results-table tr:hover {
+    background: rgba(93, 211, 139, 0.06);
+    transition: 0.3s ease;
+}
+
+/* ==========================================================
+   Results Section Heading Styling
+
+   Enhanced typography and spacing for section
+   titles to create stronger visual hierarchy
+   between disease analysis, growth prediction,
+   and recommendation blocks.
+
+   Enhancements:
+   - Better spacing consistency
+   - Improved readability
+   - Cleaner dashboard appearance
+   - More professional UI structure
+========================================================== */
+.results-section-title {
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    letter-spacing: -0.4px;
+}
+
+.results-list li {
+    margin-bottom: 0.8rem;
+    line-height: 1.7;
+}
+
+.results-footer {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    color: var(--text-muted);
+}
+
+.health-bar {
+    width: 100%;
+    height: 12px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 0.7rem 0;
+}
+
+.health-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(
+        90deg,
+        #5dd18b,
+        #6ddc90
+    );
+    box-shadow: 0 0 15px rgba(93,211,139,0.45);
+ main
+}`n/* =========================================================`n   Print & Export PDF Styles`n   ========================================================= */`n@media print {`n    .no-print, `n    .navbar, `n    .footer, `n    .upload-btn, `n    #toggle-ai-focus, `n    .results-summary, `n    .results-pre,`n    .trail-container,`n    .theme-toggle-btn {`n        display: none !important;`n    }`n`n    body {`n        background: white !important;`n        color: black !important;`n    }`n`n    .main-content {`n        padding-top: 0 !important;`n    }`n`n    .glass-card {`n        background: white !important;`n        box-shadow: none !important;`n        border: 1px solid #ddd !important;`n        backdrop-filter: none !important;`n        -webkit-backdrop-filter: none !important;`n    }`n`n    .results-card {`n        margin: 0 !important;`n        padding: 0 !important;`n        width: 100% !important;`n        box-shadow: none !important;`n    }`n`n    .result-card {`n        page-break-inside: avoid;`n        margin-bottom: 20px !important;`n        border: 1px solid #eee !important;`n        padding: 15px !important;`n        background: white !important;`n    }`n`n    .results-section-title {`n        color: #2E8B57 !important;`n    }`n`n    .health-bar {`n        border: 1px solid #ddd !important;`n        background: #f5f5f5 !important;`n        -webkit-print-color-adjust: exact;`n        print-color-adjust: exact;`n    }`n`n    .health-fill {`n        background: #2E8B57 !important;`n        -webkit-print-color-adjust: exact;`n        print-color-adjust: exact;`n    }`n}
+}
+
+/* =========================================================
+   Active Navbar Highlight Styling
+   Improves navigation clarity and user orientation
+   across Agri-Vision pages
+
+.nav-link {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+/* Active page highlight */
+.active-nav {
+    color: #57e389 !important;
+    font-weight: 700;
+}
+
+/* Animated underline effect */
+.active-nav::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    background: #57e389;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(87, 227, 137, 0.6);
+}
+
+/* Hover improvement for navbar links */
+.nav-link:hover {
+    color: #57e389;
+}
+
+/* =========================================================
+   ADVANCED NAVIGATION EXPERIENCE ENHANCEMENT
+   =========================================================
+   This styling block was added to improve the overall
+   user navigation experience inside the Agri-Vision
+   platform interface.
+
+   The previous navbar implementation worked correctly,
+   but lacked visual indication for the currently active
+   page. This could create confusion for users navigating
+   between different agricultural analysis modules.
+
+   Improvements introduced in this enhancement:
+
+   ✔ Active page highlighting
+   ✔ Smooth hover transitions
+   ✔ Modern glowing underline animation
+   ✔ Better visual hierarchy
+   ✔ Improved accessibility and orientation
+   ✔ Consistent futuristic UI appearance
+   ✔ Enhanced dark-theme compatibility
+   ✔ Better responsiveness for different screen sizes
+   ✔ Improved readability for navbar interactions
+   ✔ More professional production-style navigation feel
+
+   Design Goals:
+   ---------------------------------------------------------
+   - Maintain Agri-Vision cyber/agri aesthetic
+   - Keep navbar lightweight and responsive
+   - Improve navigation clarity for users
+   - Add subtle animation without distraction
+   - Match green AI-inspired visual identity
+
+   Technical Notes:
+   ---------------------------------------------------------
+   The active navbar system uses:
+   - pseudo-elements (::after)
+   - transition animations
+   - glow shadows
+   - custom highlight coloring
+   - reusable nav-link utility classes
+
+   Future Expansion Possibilities:
+   ---------------------------------------------------------
+   - Dynamic active page detection using Flask/Jinja
+   - Animated page transition indicators
+   - Gradient underline effects
+   - Mobile navigation active states
+   - Scroll-aware navbar highlighting
+   - Breadcrumb integration
+   - Multi-theme compatibility
+
+   This enhancement contributes toward improving
+   the professional frontend experience of the
+   Agri-Vision AI-powered agricultural platform.
+
+/*  MOBILE RESPONSIVENESS */
+
+@media (max-width: 768px) {
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .container {
+        padding: 1rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    p {
+        font-size: 0.95rem;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}
+/* MOBILE NAVBAR FIX */
+
+@media (max-width:768px){
+
+    .navbar{
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+
+        width: 92%;
+        z-index: 9999;
+
+        padding: 12px 16px;
+        border-radius: 18px;
+
+        background: rgba(255,255,255,.92);
+        backdrop-filter: blur(10px);
+
+        box-shadow: 0 8px 20px rgba(0,0,0,.08);
+
+        overflow: visible;
+    }
+
+    .nav-container{
+        /* display:flex; */
+        justify-content:space-between;
+        align-items:center;
+
+        flex-wrap:nowrap !important;
+        flex-direction:row !important;
+
+        padding:0 !important;
+    }
+
+    .nav-brand{
+        /* display:flex; */
+        align-items:center;
+        gap:8px;
+
+        min-width:0;
+        overflow:visible;
+    }
+
+    .nav-brand img,
+    .nav-logo{
+        width:28px;
+        height:28px;
+        flex-shrink:0;
+    }
+
+    .nav-brand h1,
+    .nav-brand span{
+        font-size:1.2rem !important;
+        white-space:nowrap;
+        margin:0;
+    }
+
+    .nav-menu{
+        display:none;
+    }
+ /* page spacing under fixed navbar */
+    body{
+        padding-top:85px;
+    }
+
+}
+/* MOBILE UPLOAD AREA FIX*/
+
+@media (max-width: 768px) {
+
+    .upload-area {
+        padding: 1rem !important;
+        min-height: auto;
+    }
+
+    .upload-area i {
+        font-size: 2rem !important;
+    }
+
+    .upload-area p {
+        line-height: 1.4;
+    }
+
+    .glass-card {
+        padding: 1rem !important;
+    }
+
+    .section-header h1 {
+        font-size: 1.8rem !important;
+    }
+
+    .section-header p {
+        font-size: 0.9rem !important;
+    }
+}
+.results-main-title{
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--emerald-green);
+}
+.results-subtitle{
+    font-size: 0.95rem;
+}
+.result-card{
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(14px);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.result-card:hover{
+    transform: translateY(-4px);
+    border-color: rgba(46,139,87,0.35);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+.results-table{
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    overflow: hidden;
+    border-radius: 12px;
+    table-layout: fixed;
+}
+
+.results-table th{
+    background: rgba(46,139,87,0.12);
+    padding: 14px;
+    text-align: left;
+}
+
+.results-table td{
+    padding: 12px 14px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.results-table tr:hover{
+    background: rgba(255,255,255,0.03);
+}
+.health-bar{
+    width: 100%;
+    height: 14px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    margin: 0.7rem 0;
+}
+
+.health-fill{
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg,#00c853,#69f0ae);
+    box-shadow: 0 0 18px rgba(0,200,83,0.45);
+    transition: width 0.6s ease;
+}
+.result-img{
+    width: 100%;
+    border-radius: 18px;
+    border: 2px solid rgba(46,139,87,0.2);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+}
+.results-list li{
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.container{
+    width: 100%;
+    max-width: 1200px;
+    margin: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    box-sizing: border-box;
+}
+ .results-list{
+    padding-left: 1.2rem;
+    word-break: break-word;
+}
+.bbox-cell{
+    font-size: 0.9rem;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/* Smooth Global Transitions */
+* {
+    transition:
+        background-color 0.3s ease,
+        color 0.3s ease,
+        border-color 0.3s ease;
+}
+
+/* Better Mobile Spacing */
+@media (max-width: 768px) {
+
+    section {
+        padding: 3rem 1rem !important;
+    }
+
+    .container,
+    .dashboard-container,
+    .results-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    .dashboard-card,
+    .result-card,
+    .glass-card,
+    .feature-card {
+        padding: 1rem !important;
+        border-radius: 16px !important;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .dashboard-status-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .hero {
+        min-height: auto;
+        padding-top: 7rem;
+    }
+
+    .hero-content h1 {
+        font-size: 1.8rem !important;
+        line-height: 1.3;
+    }
+
+    .hero-content p {
+        font-size: 0.95rem;
+    }
+
+    .hero-cta {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .hero-cta .btn-primary,
+    .hero-cta .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Better Responsive Grids */
+@media (max-width: 600px) {
+
+    .results-grid,
+    .dashboard-metrics-grid,
+    .probabilities-grid,
+    .stories-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .feature-card,
+    .result-card,
+    .dashboard-card {
+        min-width: 100%;
+    }
+}
+
+/* Responsive Tables */
+.results-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent Long Text Overflow */
+h1, h2, h3, h4, p, span, a, li {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Prevent Image Overflow */
+img,
+canvas,
+video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Mobile Floating Elements Fix */
+@media (max-width: 768px) {
+
+    .floating-telemetry-1,
+    .floating-telemetry-2 {
+        position: static;
+        margin-top: 1rem;
+        width: 100%;
+        animation: none;
+    }
+
+    .scanner-container {
+        overflow: hidden;
+    }
+}
+
+/* Skeleton Loading Animation */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+}
+
+.skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255,255,255,0.18),
+        transparent
+    );
+    animation: skeleton-loading 1.2s infinite;
+}
+
+@keyframes skeleton-loading {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Spinner Loader */
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255,255,255,0.15);
+    border-top-color: var(--emerald-green);
+    border-radius: 50%;
+    animation: spinLoader 0.8s linear infinite;
+    margin: 2rem auto;
+}
+
+@keyframes spinLoader {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Fade Loading Transition */
+.fade-loading {
+    animation: fadeContent 0.4s ease;
+}
+
+@keyframes fadeContent {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Better Touch Interaction */
+button,
+a,
+.card,
+.btn-primary,
+.btn-secondary {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile Typography Scaling */
+html {
+    font-size: clamp(14px, 1vw, 16px);
+}
+
+/* Reduce Heavy Animations on Mobile */
+@media (max-width: 768px) {
+
+    .blob,
+    .scanner-laser,
+    .mock-bbox,
+    .feature-card:hover,
+    .result-card:hover,
+    .dashboard-card:hover {
+        animation: none !important;
+        transform: none !important;
+    }
+}
+/* =========================================================
+   Footer Responsiveness & Spacing Improvements
+   =========================================================
+   This styling enhancement improves the footer layout
+   across tablets, mobile devices, and smaller screens.
+
+   Key improvements included:
+   ---------------------------------------------------------
+   ✔ Better footer spacing
+   ✔ Improved mobile responsiveness
+   ✔ Cleaner stacked layout
+   ✔ Better text readability
+   ✔ Reduced overcrowding
+   ✔ Flexible wrapping behavior
+   ✔ Improved alignment consistency
+   ✔ Enhanced small-screen usability
+   ✔ Better footer navigation visibility
+   ✔ Modern responsive spacing structure
+
+   The previous footer layout appeared slightly compressed
+   on smaller screens and required better spacing behavior
+   for improved readability and accessibility.
+
+   This enhancement ensures the footer maintains
+   Agri-Vision's modern futuristic design language
+   while adapting smoothly across multiple resolutions.
+
+/* Footer responsive layout improvements */
+.footer-container {
+    gap: 2rem;
+}
+
+/* Footer links spacing enhancement */
+.footer-links-compact {
+    gap: 1.2rem;
+    flex-wrap: wrap;
+}
+
+/* Better footer bottom alignment */
+.footer-bottom {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Responsive adjustments for tablets */
+@media (max-width: 768px) {
+
+    .footer-container {
+        padding: 2rem 1.5rem;
+        text-align: center;
+    }
+
+    .footer-links-compact {
+        justify-content: center;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .footer-social {
+        justify-content: center;
+    }
+}
+
+/* Mobile screen optimization */
+@media (max-width: 480px) {
+
+    .footer-container {
+        padding: 1.5rem 1rem;
+    }
+
+    .footer-links-compact {
+        gap: 0.8rem;
+        font-size: 0.92rem;
+    }
+
+    .footer-title {
+        font-size: 1.4rem;
+    }
+
+    .footer-subtitle {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .footer-bottom {
+        gap: 0.7rem;
+    }
+
+    .footer-social {
+        gap: 0.8rem;
+    }
+}
+
+/* =========================================================
+   Additional Footer UI Enhancement Notes
+   =========================================================
+   Future footer improvements may include:
+
+   - Animated footer reveal transitions
+   - Dynamic copyright year logic
+   - Accessibility contrast improvements
+   - Social icon hover glow animations
+   - Multi-column responsive footer grids
+   - Better keyboard navigation visibility
+   - Progressive mobile layout optimization
+   - Advanced glassmorphism footer styling
+   - Sticky responsive footer behavior
+   - Dynamic quick-link organization
+
+   This enhancement contributes toward creating
+   a more production-ready responsive experience
+   for Agri-Vision users across modern devices.
+
+   The footer now behaves more consistently
+   across different viewport dimensions while
+   preserving readability and navigation clarity.
+.agri-scan-history-panel {
+    margin-top: 2rem;
+    padding: 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    background: rgba(8, 22, 18, 0.68);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(16px);
+}
+
+.agri-scan-history-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.agri-scan-history-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 1rem;
+}
+
+.agri-scan-history-card {
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+    transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.agri-scan-history-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(45, 212, 117, 0.38);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.3);
+}
+
+.agri-scan-history-img {
+    display: block;
+    width: 100%;
+    height: 145px;
+    object-fit: cover;
+    background: rgba(0, 0, 0, 0.22);
+}
+
+.agri-scan-history-body {
+    padding: 0.9rem;
+}
+
+.agri-scan-history-disease {
+    color: #ffffff;
+    font-size: 0.98rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
+.agri-scan-history-confidence,
+.agri-scan-history-date,
+.agri-scan-history-empty {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.84rem;
+}
+
+.agri-scan-history-date {
+    margin-top: 0.25rem;
+}
+
+.agri-scan-history-empty {
+    padding: 0.9rem;
+    border: 1px dashed rgba(255, 255, 255, 0.16);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.agri-scan-history-delete {
+    margin-top: 0.8rem;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid rgba(255, 95, 95, 0.35);
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.16);
+    color: #ffd4d4;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.agri-scan-history-delete:hover {
+    background: rgba(239, 68, 68, 0.28);
+    transform: translateY(-1px);
+}
+
+.agri-leaf-compare-wrap {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 22px;
+    background: rgba(12, 22, 20, 0.72);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(18px);
+}
+
+.agri-leaf-compare-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.25rem;
+}
+
+.agri-leaf-compare-card {
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.agri-leaf-compare-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(78, 214, 122, 0.35);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
+}
+
+.agri-leaf-compare-imagebox {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.agri-leaf-compare-imagebox img {
+    width: 100%;
+    height: 260px;
+    object-fit: cover;
+    display: block;
+}
+
+.agri-leaf-healthy-label,
+.agri-leaf-diseased-label {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+
+.agri-leaf-healthy-label {
+    background: rgba(34, 197, 94, 0.88);
+}
+
+.agri-leaf-diseased-label {
+    background: rgba(239, 68, 68, 0.88);
+}
+
+.agri-leaf-symptoms-panel,
+.agri-leaf-treatment-panel {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.055);
+    color: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.agri-leaf-symptoms-panel strong,
+.agri-leaf-treatment-panel strong {
+    color: #9ff0b8;
+}
+
+@media (max-width: 768px) {
+    .agri-scan-history-panel {
+        padding: 1rem;
+    }
+
+    .agri-scan-history-list,
+    .agri-leaf-compare-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .agri-leaf-compare-wrap {
+        padding: 1rem;
+    }
+}
+
+/* Loading State Protection */
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ------------------------------------------------------------------- */
+/* EXPLAINABLE AI (GRAD-CAM) DASHBOARD & INTERACTIVE SLIDER STYLES */
+/* ------------------------------------------------------------------- */
+#explainability-dashboard {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    backdrop-filter: blur(20px);
+    transition: var(--transition-smooth);
+}
+
+.explainability-viewer-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.explainability-viewer-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.05);
+}
+
+/* Premium Opacity Range Slider */
+#heatmap-opacity-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(0,0,0,0.1);
+    height: 6px;
+    border-radius: 5px;
+    outline: none;
+    transition: background 0.2s;
+}
+
+#heatmap-opacity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--ai-blue, #3b82f6);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+#heatmap-opacity-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: var(--electric-blue, #6366f1);
+}
+
+#heatmap-opacity-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    background: var(--ai-blue, #3b82f6);
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+#heatmap-opacity-slider::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    background: var(--electric-blue, #6366f1);
+}
+
+/* Animations and interactions */
+#btn-view-explanation:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+}
+
+/* ------------------------------------------------------------------- */
+/* PRINT MEDIA STYLES - AGRICULTURE DIAGNOSTIC LAB REPORT PDF EXPORT */
+/* ------------------------------------------------------------------- */
+@media print {
+    /* Hide all interactive and non-essential UI elements */
+    header, 
+    nav, 
+    footer, 
+    .nav-bar, 
+    .agri-scan-history-panel, 
+    .upload-btn, 
+    button, 
+    a.btn, 
+    #btn-view-explanation, 
+    #toggle-ai-focus, 
+    .opacity-control-wrap,
+    .tutorial-link,
+    .support-section {
+        display: none !important;
+    }
+
+    /* Reset margins, shadows, and force clean print colors */
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 12pt !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .glass-card, 
+    .result-card, 
+    .explainability-viewer-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        padding: 0 !important;
+        margin: 0 0 2rem 0 !important;
+    }
+
+    /* Print Header decoration */
+    .results-card::before {
+        content: "AGRI-VISION CROP INTELLIGENCE REPORT";
+        display: block;
+        text-align: center;
+        font-size: 16pt;
+        font-weight: 800;
+        color: #065f46;
+        border-bottom: 2px solid #065f46;
+        padding-bottom: 0.8rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Force layouts to be stacked or side-by-side cleanly */
+    .agri-leaf-compare-grid, 
+    .explainability-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 2rem !important;
+        page-break-inside: avoid;
+    }
+
+    .blended-viewer-container {
+        max-width: 320px !important;
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+
+    /* Ensure heatmaps show up at 50% opacity in PDF print */
+    #explain-heatmap-img {
+        opacity: 0.5 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Color indicators */
+    .badge {
+        border: 1px solid #aaa !important;
+        color: #000 !important;
+        background: transparent !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Avoid page breaking in critical blocks */
+    .result-card, 
+    .secondary-detections-card, 
+    .heatmap-legend {
+        page-break-inside: avoid;
+    }
+
+    /* Footer mark */
+    body::after {
+        content: "Report generated by Agri-Vision AI Diagnostic Systems. Verified Agricultural Output.";
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 8pt;
+        color: #888;
+        border-top: 1px solid #eee;
+        padding-top: 0.5rem;
+    }
+}
+
+@keyframes pulseWarning {
+    0% {
+        box-shadow: 0 0 0 rgba(255, 183, 3, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(255, 183, 3, 0.7);
+    }
+
+    100% {
+        box-shadow: 0 0 0 rgba(255, 183, 3, 0.4);
+    }
+}
+
+.xai-probability-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 1rem;
+    border-radius: 14px;
+    margin-top: 1rem;
+    backdrop-filter: blur(10px);
+}
+
+.xai-confidence-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-main);
+}
+
+.xai-confidence-meter {
+    height: 12px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.08);
+    margin-top: 0.5rem;
+}
+
+.xai-confidence-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #10b981, #3b82f6);
+    transition: width 1s ease;
+}
+/* =========================================================
+   Issue #275: Light Theme UI Inconsistencies Fixes
+   
+   Fixes for:
+   1. New Analysis button (green branding, modern styling)
+   2. Export PDF button (consistent appearance)
+   3. Recent Analyses container (theme-aware background)
+========================================================= */
+
+/* Results Action Buttons (New Analysis, Export PDF) */
+.results-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.results-action-btn.primary {
+    background: linear-gradient(135deg, var(--emerald-green) 0%, var(--fresh-green) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.25);
+}
+
+.results-action-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 139, 87, 0.35);
+}
+
+.results-action-btn.primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(46, 139, 87, 0.2);
+}
+
+.results-action-btn.secondary {
+    background: var(--card-bg);
+    color: var(--text-main);
+    border: 1.5px solid var(--card-border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.results-action-btn.secondary:hover {
+    background: rgba(46, 139, 87, 0.06);
+    border-color: rgba(46, 139, 87, 0.3);
+    box-shadow: 0 4px 12px rgba(46, 139, 87, 0.1);
+}
+
+.results-action-btn.secondary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="dark"] .results-action-btn.secondary {
+    background: var(--card-bg);
+    color: var(--text-main);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .results-action-btn.secondary:hover {
+    background: rgba(60, 179, 113, 0.12);
+    border-color: rgba(60, 179, 113, 0.4);
+    box-shadow: 0 4px 12px rgba(60, 179, 113, 0.2);
+}
+
+/* Recent Analyses Panel (Light Theme Adapted) */
+.results-recent-analyses-panel {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    background: rgba(46, 139, 87, 0.04);
+    box-shadow: var(--soft-shadow);
+}
+
+.results-recent-analyses-header {
+    margin-bottom: 1.5rem;
+}
+
+.results-recent-analyses-empty {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--text-muted);
+    background: var(--card-bg);
+    border: 1px dashed var(--card-border);
+    border-radius: 12px;
+    font-style: italic;
+}
+
+[data-theme="dark"] .results-recent-analyses-panel {
+    background: rgba(60, 179, 113, 0.08);
+    border-color: rgba(60, 179, 113, 0.2);
+}
+
+[data-theme="dark"] .results-recent-analyses-empty {
+    background: rgba(22, 27, 33, 0.6);
+    border-color: rgba(60, 179, 113, 0.15);
+    color: rgba(224, 224, 224, 0.8);
+}
+
+/* Ensure old agri-scan-history styling still works for backward compatibility */
+.agri-scan-history-panel {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    background: rgba(46, 139, 87, 0.04);
+    box-shadow: var(--soft-shadow);
+}
+
+[data-theme="dark"] .agri-scan-history-panel {
+    background: rgba(8, 22, 18, 0.4);
+    border-color: rgba(60, 179, 113, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.agri-scan-history-empty {
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--text-muted);
+    background: var(--card-bg);
+    border: 1px dashed var(--card-border);
+    border-radius: 12px;
+    font-style: italic;
+}
+
+[data-theme="dark"] .agri-scan-history-empty {
+    background: rgba(22, 27, 33, 0.6);
+    border-color: rgba(60, 179, 113, 0.15);
+    color: rgba(224, 224, 224, 0.8);
 }

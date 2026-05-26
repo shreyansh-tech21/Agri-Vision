@@ -1,0 +1,49 @@
+name: Backfill mentor label to merged PRs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  add-labels:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Add label to old merged PRs
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labelName = "mentor:iarmaanx";
+
+            // Get all closed PRs
+            const prs = await github.paginate(
+              github.rest.pulls.list,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: "closed",
+                per_page: 100
+              }
+            );
+
+            for (const pr of prs) {
+              // Only merged PRs
+              if (pr.merged_at) {
+                try {
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.number,
+                    labels: [labelName]
+                  });
+
+                  console.log(`Added label to PR #${pr.number}`);
+                } catch (err) {
+                  console.log(`Skipped PR #${pr.number}: ${err.message}`);
+                }
+              }
+            }
