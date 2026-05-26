@@ -694,14 +694,44 @@
       items.forEach(function (item, index) {
         var card = document.createElement("div");
         card.className = "agri-scan-history-card";
-        card.innerHTML =
-          '<img class="agri-scan-history-img" src="' + item.image + '" alt="Previous crop analysis">' +
-          '<div class="agri-scan-history-body">' +
-          '<div class="agri-scan-history-disease">' + item.disease + '</div>' +
-          '<div class="agri-scan-history-confidence">' + item.confidence + '% Confidence</div>' +
-          '<div class="agri-scan-history-date">' + item.timestamp + '</div>' +
-          '<button type="button" class="agri-scan-history-delete" data-index="' + index + '">Remove</button>' +
-          '</div>';
+
+        var img = document.createElement("img");
+        img.className = "agri-scan-history-img";
+        var imageSrc = String(item.image || "");
+        if (imageSrc.startsWith("data:") || imageSrc.startsWith("http:") || imageSrc.startsWith("https:")) {
+          img.src = imageSrc;
+        } else {
+          img.src = "";
+        }
+        img.alt = "Previous crop analysis";
+        card.appendChild(img);
+
+        var body = document.createElement("div");
+        body.className = "agri-scan-history-body";
+
+        var diseaseDiv = document.createElement("div");
+        diseaseDiv.className = "agri-scan-history-disease";
+        diseaseDiv.textContent = item.disease || "Unknown";
+        body.appendChild(diseaseDiv);
+
+        var confidenceDiv = document.createElement("div");
+        confidenceDiv.className = "agri-scan-history-confidence";
+        confidenceDiv.textContent = (item.confidence || "0") + "% Confidence";
+        body.appendChild(confidenceDiv);
+
+        var dateDiv = document.createElement("div");
+        dateDiv.className = "agri-scan-history-date";
+        dateDiv.textContent = item.timestamp || "";
+        body.appendChild(dateDiv);
+
+        var deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.className = "agri-scan-history-delete";
+        deleteBtn.setAttribute("data-index", index);
+        deleteBtn.textContent = "Remove";
+        body.appendChild(deleteBtn);
+
+        card.appendChild(body);
         historyList.appendChild(card);
       });
     }

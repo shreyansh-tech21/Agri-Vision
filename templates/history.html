@@ -29,41 +29,52 @@ const container =
     document.getElementById("historyContainer");
 
 if(history.length === 0){
+    const emptyMsg = document.createElement("p");
+    emptyMsg.textContent = "No scan history found.";
+    container.appendChild(emptyMsg);
+} else {
+    history.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "history-card";
 
-    container.innerHTML =
-        "<p>No scan history found.</p>";
+        const img = document.createElement("img");
+        const imageSrc = String(item.image || "");
+        if (imageSrc.startsWith("data:") || imageSrc.startsWith("http:") || imageSrc.startsWith("https:")) {
+            img.src = imageSrc;
+        } else {
+            img.src = "";
+        }
+        img.alt = "Crop Image";
+        card.appendChild(img);
+
+        const h2 = document.createElement("h2");
+        h2.textContent = item.disease || "Unknown";
+        card.appendChild(h2);
+
+        const pConfidence = document.createElement("p");
+        const bConfidence = document.createElement("b");
+        bConfidence.textContent = "Confidence: ";
+        pConfidence.appendChild(bConfidence);
+        pConfidence.appendChild(document.createTextNode(item.confidence || ""));
+        card.appendChild(pConfidence);
+
+        const pTreatment = document.createElement("p");
+        const bTreatment = document.createElement("b");
+        bTreatment.textContent = "Treatment: ";
+        pTreatment.appendChild(bTreatment);
+        pTreatment.appendChild(document.createTextNode(item.treatment || ""));
+        card.appendChild(pTreatment);
+
+        const pDate = document.createElement("p");
+        const bDate = document.createElement("b");
+        bDate.textContent = "Date: ";
+        pDate.appendChild(bDate);
+        pDate.appendChild(document.createTextNode(item.date || ""));
+        card.appendChild(pDate);
+
+        container.appendChild(card);
+    });
 }
-
-history.forEach(item => {
-
-    container.innerHTML += `
-
-    <div class="history-card">
-
-        <img
-            src="${item.image}"
-            alt="Crop Image">
-
-        <h2>${item.disease}</h2>
-
-        <p>
-            <b>Confidence:</b>
-            ${item.confidence}
-        </p>
-
-        <p>
-            <b>Treatment:</b>
-            ${item.treatment}
-        </p>
-
-        <p>
-            <b>Date:</b>
-            ${item.date}
-        </p>
-
-    </div>
-    `;
-});
 
 </script>
 
