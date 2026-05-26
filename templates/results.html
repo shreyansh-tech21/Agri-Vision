@@ -92,6 +92,13 @@
             <div style="font-size: 0.75rem; color: #6c757d;">Precipitation</div>
           </div>
           {% endif %}
+          {% if weather.description is not none %}
+          <div class="w-stat" style="text-align:center; padding: 0.75rem; background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);">
+            <div style="font-size: 1.8rem;">{{ weather.icon|default('🌤️') }}</div>
+            <div style="font-size: 1.3rem; font-weight: 600; color: #2ecc71;">{{ weather.description }}</div>
+            <div style="font-size: 0.75rem; color: #6c757d;">Condition</div>
+          </div>
+          {% endif %}
         </div>
       </div>
       {% endif %}
@@ -442,22 +449,6 @@
       </div>
       {% endif %}
 
-      {% if weather %}
-      <div class="weather-card" style="margin: 2rem 0; padding: 1.5rem; background: linear-gradient(135deg, #667eea15, #764ba215); border: 1px solid #dee2e6; border-radius: 16px;">
-        <h3 style="margin: 0 0 1rem; color: #343a40; font-size: 1.1rem">☁️ Current Weather Conditions</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem;">
-          <div class="w-stat" style="text-align: center; padding: 0.75rem; background: white; border-radius: 10px;">
-            <b>🌡️ {{ weather.temperature }}°C</b><br /><small>Temperature</small>
-          </div>
-          <div class="w-stat" style="text-align: center; padding: 0.75rem; background: white; border-radius: 10px;">
-            <b>💧 {{ weather.humidity }}%</b><br /><small>Humidity</small>
-          </div>
-          <div class="w-stat" style="text-align: center; padding: 0.75rem; background: white; border-radius: 10px;">
-            <b>{{ weather.icon|default('🌤️') }} {{ weather.description|default('N/A') }}</b><br /><small>Condition</small>
-          </div>
-        </div>
-      </div>
-      {% endif %}
 
       <div class="result-card">
         <h2 class="results-section-title">
