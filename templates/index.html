@@ -705,54 +705,69 @@
     ========================================================= -->
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+    <script>
 
-        // Theme Toggle Logic
-        document.addEventListener('DOMContentLoaded', () => {
-
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            const themeIcon = document.querySelector('#theme-toggle i');
-
-            // SET DEFAULT THEME
-            if (!document.documentElement.getAttribute('data-theme')) {
-                document.documentElement.setAttribute('data-theme', 'light');
-            }
+    document.addEventListener("DOMContentLoaded", () => {
+        const themeToggleBtn =
+            document.getElementById("theme-toggle");
+    
+        function updateThemeIcon(theme) {
         
-            // LOAD SAVED THEME
-            const savedTheme = localStorage.getItem('theme');
+            const icon =
+                themeToggleBtn.querySelector("i");
         
-            if (savedTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            if (theme === "dark") {
+            
+                icon.classList.remove("fa-moon");
+                icon.classList.add("fa-sun");
+            
             } else {
-                document.documentElement.setAttribute('data-theme', 'light');
-                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            
+                icon.classList.remove("fa-sun");
+                icon.classList.add("fa-moon");
             }
+        }
+    
+        // Load saved theme
+        const savedTheme =
+            localStorage.getItem("theme") || "light";
+    
+        document.documentElement.setAttribute(
+            "data-theme",
+            savedTheme
+        );
+    
+        updateThemeIcon(savedTheme);
+    
+        // Toggle theme
+        themeToggleBtn.addEventListener("click", () => {
         
-            // TOGGLE BUTTON
-            themeToggleBtn.addEventListener('click', () => {
-            
-                const currentTheme =
-                    document.documentElement.getAttribute('data-theme');
-            
-                if (currentTheme === 'dark') {
-                
-                    document.documentElement.setAttribute('data-theme', 'light');
-                
-                    localStorage.setItem('theme', 'light');
-                
-                    themeIcon.classList.replace('fa-sun', 'fa-moon');
-                
-                } else {
-                
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                
-                    localStorage.setItem('theme', 'dark');
-                
-                    themeIcon.classList.replace('fa-moon', 'fa-sun');
-                }
-            });
+            const currentTheme =
+                document.documentElement.getAttribute(
+                    "data-theme"
+                );
         
+            const newTheme =
+                currentTheme === "dark"
+                ? "light"
+                : "dark";
+        
+            document.documentElement.setAttribute(
+                "data-theme",
+                newTheme
+            );
+        
+            localStorage.setItem(
+                "theme",
+                newTheme
+            );
+        
+            updateThemeIcon(newTheme);
         });
+    
+    });
+    
     </script>
     <script>
         // Navbar scroll effect

@@ -16,6 +16,22 @@ async function loadLanguage(lang) {
 
             element.textContent =
                 translations[key];
+            const icon =
+                element.querySelector("i");
+
+            if (icon) {
+
+                const iconHTML =
+                    icon.outerHTML;
+
+                element.innerHTML =
+                    `${iconHTML} ${translations[key]}`;
+
+            } else {
+
+                element.textContent =
+                    translations[key];
+            }
         }
     });
 

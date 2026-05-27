@@ -1783,6 +1783,136 @@ def api_batch_results(job_id):
         'results': results
     })
 
+@app.route("/api/batch_results/<job_id>/export/csv", methods=["GET"])
+def export_batch_csv(job_id):
+    """Export batch results as CSV"""
+    from models import BatchJob
+    import csv
+    from io import StringIO
+    
+    job = BatchJob.query.get(job_id)
+    if not job:
+        return jsonify({'error': 'Batch job not found'}), 404
+
+    si = StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['Image Name', 'Status', 'Disease', 'Confidence', 'Health Score', 'Growth Stage'])
+    
+    # Sort results by image index
+    results = sorted(job.results, key=lambda x: x.image_index)
+    
+    for r in results:
+        results_data = r.results_json or {}
+        disease = results_data.get('disease', {})
+        growth = results_data.get('growth', {})
+        
+        disease_class = disease.get('predicted_class', 'N/A')
+        confidence = f"{disease.get('confidence', 0):.3f}" if disease.get('confidence') is not None else 'N/A'
+        health_score = f"{disease.get('health_score', 0):.1f}" if disease.get('health_score') is not None else 'N/A'
+        growth_class = growth.get('main_class', 'N/A')
+        
+        cw.writerow([
+            r.image_name,
+            r.status,
+            disease_class,
+            confidence,
+            health_score,
+            growth_class
+        ])
+        
+    output = si.getvalue()
+    si.close()
+    
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-disposition": f"attachment; filename=batch_results_{job_id}.csv"}
+    )
+
+
+@app.route("/api/batch_results/<job_id>/export/pdf", methods=["GET"])
+def export_batch_pdf(job_id):
+    """Export batch results as PDF"""
+    from models import BatchJob
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import letter, landscape
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet
+        from io import BytesIO
+    except ImportError:
+        return jsonify({"error": "reportlab not installed. Install with: pip install reportlab"}), 500
+
+    job = BatchJob.query.get(job_id)
+    if not job:
+        return jsonify({'error': 'Batch job not found'}), 404
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Title
+    title = Paragraph(f"Batch Analysis Report (Job ID: {job_id})", styles['Title'])
+    elements.append(title)
+    elements.append(Spacer(1, 12))
+
+    # Summary
+    summary_text = f"Total Images: {job.total_images} | Completed: {job.completed_images} | Failed: {job.failed_images}"
+    summary = Paragraph(summary_text, styles['Normal'])
+    elements.append(summary)
+    elements.append(Spacer(1, 12))
+
+    # Table data
+    table_data = [['Image Name', 'Status', 'Disease', 'Confidence', 'Health Score', 'Growth Stage']]
+    
+    results = sorted(job.results, key=lambda x: x.image_index)
+    
+    for r in results:
+        results_data = r.results_json or {}
+        disease = results_data.get('disease', {})
+        growth = results_data.get('growth', {})
+        
+        disease_class = disease.get('predicted_class', 'N/A')
+        confidence = f"{disease.get('confidence', 0)*100:.1f}%" if disease.get('confidence') is not None else 'N/A'
+        health_score = f"{disease.get('health_score', 0):.1f}%" if disease.get('health_score') is not None else 'N/A'
+        growth_class = growth.get('main_class', 'N/A')
+        
+        table_data.append([
+            r.image_name,
+            r.status.upper(),
+            disease_class,
+            confidence,
+            health_score,
+            growth_class
+        ])
+
+    # Create table
+    table = Table(table_data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTSIZE', (0, 1), (-1, -1), 9),
+        ('WORDWRAP', (0, 0), (-1, -1), 'CJK'),
+    ]))
+    
+    elements.append(table)
+    doc.build(elements)
+    
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f'batch_results_{job_id}.pdf',
+        mimetype='application/pdf'
+    )
+
 
 @app.route("/batch", methods=["GET", "POST"])
 @login_required

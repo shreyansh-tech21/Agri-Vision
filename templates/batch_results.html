@@ -341,8 +341,11 @@
         </div>
         
         <div class="action-buttons" id="actionButtons" style="display: none;">
-            <button class="btn btn-primary" onclick="exportCSV()">
+            <button class="btn btn-primary" onclick="exportBackendCSV()">
                 <i class="fas fa-file-csv"></i> Export CSV
+            </button>
+            <button class="btn btn-primary" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);" onclick="exportBackendPDF()">
+                <i class="fas fa-file-pdf"></i> Export PDF
             </button>
             <button class="btn btn-secondary" onclick="window.location.href='/batch'">
                 <i class="fas fa-plus"></i> New Batch
@@ -478,26 +481,12 @@
             return 'confidence-low';
         }
         
-        function exportCSV() {
-            fetch(`/api/batch_results/${jobId}`)
-                .then(r => r.json())
-                .then(data => {
-                    const results = data.results || [];
-                    let csv = 'Image Name,Status,Disease,Confidence,Health Score,Growth Stage\n';
-                    
-                    results.forEach(r => {
-                        const resultsData = r.results || {};
-                        csv += `"${r.image_name}",${r.status},"${resultsData.disease?.predicted_class || 'N/A'}",${(resultsData.disease?.confidence || 0).toFixed(3)},"${resultsData.disease?.health_score?.toFixed(1) || 'N/A'}","${resultsData.growth?.main_class || 'N/A'}"\n`;
-                    });
-                    
-                    const blob = new Blob([csv], { type: 'text/csv' });
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `batch_results_${jobId}.csv`;
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                });
+        function exportBackendCSV() {
+            window.location.href = `/api/batch_results/${jobId}/export/csv`;
+        }
+        
+        function exportBackendPDF() {
+            window.location.href = `/api/batch_results/${jobId}/export/pdf`;
         }
         
         // Initial load
