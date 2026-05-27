@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Map - Agri-Vision</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .map-container {
+            height: calc(100vh - 70px);
+            position: relative;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        .map-controls h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .filter-group {
+            margin-bottom: 15px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .filter-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .legend {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        
+        .legend h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .stats-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 350px;
+        }
+        
+        .stats-panel h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .loading i {
+            font-size: 30px;
+            color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .btn-refresh {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .btn-refresh:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-leaf"></i>
+                <span>Agri-Vision</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/">Home</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="/analyze">Analyze</a></li>
+                    <li><a href="/batch">Batch</a></li>
+                    <li><a href="/history">History</a></li>
+                    <li><a href="/disease-map" class="active">Disease Map</a></li>
+                    <li><a href="/dashboard">Dashboard</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                    {% if current_user.is_researcher() %}
+                        <li><a href="/model-admin">Admin</a></li>
+                    {% endif %}
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% else %}
+                    <li><a href="/demo">Demo</a></li>
+                    <li><a href="/login" class="btn btn-primary">Login</a></li>
+                    <li><a href="/register" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="map-container">
+        <div id="map"></div>
+        
+        <div class="map-controls">
+            <h3><i class="fas fa-filter"></i> Filters</h3>
+            
+            <div class="filter-group">
+                <label for="disease-filter">Disease Type</label>
+                <select id="disease-filter">
+                    <option value="all">All Diseases</option>
+                    <option value="healthy">Healthy</option>
+                    <option value="bacterial_blight">Bacterial Blight</option>
+                    <option value="curl_virus">Curl Virus</option>
+                    <option value="fusarium_wilt">Fusarium Wilt</option>
+                    <option value="target_spot">Target Spot</option>
+                    <option value="alternaria_leaf_spot">Alternaria Leaf Spot</option>
+                    <option value="powdery_mildew">Powdery Mildew</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="time-filter">Time Period</label>
+                <select id="time-filter">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
+                    <option value="year">Last Year</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="confidence-filter">Min Confidence</label>
+                <select id="confidence-filter">
+                    <option value="0">All</option>
+                    <option value="50">50%+</option>
+                    <option value="70">70%+</option>
+                    <option value="80">80%+</option>
+                    <option value="90">90%+</option>
+                </select>
+            </div>
+            
+            <button class="btn-refresh" onclick="refreshMap()">
+                <i class="fas fa-sync-alt"></i> Refresh Map
+            </button>
+            
+            <div class="legend">
+                <h4><i class="fas fa-info-circle"></i> Legend</h4>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #22c55e;"></div>
+                    <span>Healthy</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ef4444;"></div>
+                    <span>Bacterial Blight</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f59e0b;"></div>
+                    <span>Curl Virus</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #8b5cf6;"></div>
+                    <span>Fusarium Wilt</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ec4899;"></div>
+                    <span>Target Spot</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #06b6d4;"></div>
+                    <span>Other Diseases</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats-panel">
+            <h3><i class="fas fa-chart-bar"></i> Statistics</h3>
+            <div class="stat-item">
+                <span class="stat-label">Total Analyses</span>
+                <span class="stat-value" id="total-analyses">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Healthy Plants</span>
+                <span class="stat-value" id="healthy-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Diseased Plants</span>
+                <span class="stat-value" id="diseased-count">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Avg Health Score</span>
+                <span class="stat-value" id="avg-health">0%</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Regions Covered</span>
+                <span class="stat-value" id="regions-count">0</span>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner"></i>
+            <p style="margin-top: 10px; color: #666;">Loading map data...</p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let markers = [];
+        let heatmapLayer;
+        
+        // Disease color mapping
+        const diseaseColors = {
+            'healthy': '#22c55e',
+            'bacterial_blight': '#ef4444',
+            'curl_virus': '#f59e0b',
+            'fusarium_wilt': '#8b5cf6',
+            'target_spot': '#ec4899',
+            'alternaria_leaf_spot': '#06b6d4',
+            'powdery_mildew': '#14b8a6'
+        };
+        
+        function initMap() {
+            // Initialize map centered on India (cotton growing region)
+            map = L.map('map').setView([20.5937, 78.9629], 5);
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Load initial data
+            loadMapData();
+        }
+        
+        async function loadMapData() {
+            document.getElementById('loading').classList.add('show');
+            
+            try {
+                const diseaseFilter = document.getElementById('disease-filter').value;
+                const timeFilter = document.getElementById('time-filter').value;
+                const confidenceFilter = document.getElementById('confidence-filter').value;
+                
+                const response = await fetch(`/api/disease-map?disease=${diseaseFilter}&time=${timeFilter}&confidence=${confidenceFilter}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to load map data');
+                }
+                
+                const data = await response.json();
+                
+                // Clear existing markers
+                markers.forEach(marker => map.removeLayer(marker));
+                markers = [];
+                
+                // Add new markers
+                data.analyses.forEach(analysis => {
+                    if (analysis.latitude && analysis.longitude) {
+                        const diseaseClass = analysis.disease_result?.predicted_class || 'unknown';
+                        const color = diseaseColors[diseaseClass] || '#666';
+                        
+                        const marker = L.circleMarker([analysis.latitude, analysis.longitude], {
+                            radius: 8,
+                            fillColor: color,
+                            color: '#fff',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        }).addTo(map);
+                        
+                        // Add popup
+                        const popupContent = `
+                            <div style="min-width: 200px;">
+                                <h4 style="margin: 0 0 10px 0; color: #333;">${diseaseClass.replace(/_/g, ' ').toUpperCase()}</h4>
+                                <p style="margin: 5px 0; color: #666;">
+                                    <strong>Location:</strong> ${analysis.location_name || 'Unknown'}
+                                </p>
+                                <p style="margin: 5px 0; color: #666;">
+                                    <strong>Confidence:</strong> ${(analysis.confidence * 100).toFixed(1)}%
+                                </p>
+                                <p style="margin: 5px 0; color: #666;">
+                                    <strong>Health Score:</strong> ${analysis.health_score ? analysis.health_score.toFixed(1) : 'N/A'}
+                                </p>
+                                <p style="margin: 5px 0; color: #666; font-size: 12px;">
+                                    ${new Date(analysis.created_at).toLocaleString()}
+                                </p>
+                            </div>
+                        `;
+                        
+                        marker.bindPopup(popupContent);
+                        markers.push(marker);
+                    }
+                });
+                
+                // Update statistics
+                document.getElementById('total-analyses').textContent = data.stats.total_analyses;
+                document.getElementById('healthy-count').textContent = data.stats.healthy_count;
+                document.getElementById('diseased-count').textContent = data.stats.diseased_count;
+                document.getElementById('avg-health').textContent = data.stats.avg_health_score.toFixed(1) + '%';
+                document.getElementById('regions-count').textContent = data.stats.regions_count;
+                
+            } catch (error) {
+                console.error('Error loading map data:', error);
+                alert('Failed to load map data. Please try again.');
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+        
+        function refreshMap() {
+            loadMapData();
+        }
+        
+        // Event listeners for filters
+        document.getElementById('disease-filter').addEventListener('change', loadMapData);
+        document.getElementById('time-filter').addEventListener('change', loadMapData);
+        document.getElementById('confidence-filter').addEventListener('change', loadMapData);
+        
+        // Initialize map on page load
+        document.addEventListener('DOMContentLoaded', initMap);
+    </script>
+</body>
+</html>
