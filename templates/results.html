@@ -494,6 +494,128 @@
         </ul>
       </div>
 
+      <!-- Context-Aware Treatment & Management Guide -->
+      {% set tr = treatment_recommendations|default({}) %}
+      {% if tr and tr.treatment is defined %}
+      <div class="result-card" id="treatment-management-guide">
+        <h2 class="results-section-title">
+          <i class="fas fa-prescription-bottle-medical"></i> Treatment &amp; Management Guide
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          Actionable agricultural guidance based on the detected condition
+          {% if tr.disease_name and tr.disease_name != 'unknown' %}
+            — <b>{{ tr.disease_name }}</b>
+          {% endif %}
+        </p>
+
+        {% if tr.confidence_advisory %}
+        <div style="
+            margin-bottom: 1.5rem;
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #fff3cd, #ffe69c);
+            border-left: 5px solid #ffb703;
+            color: #664d03;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        ">
+          <i class="fas fa-triangle-exclamation"></i>
+          {{ tr.confidence_advisory }}
+        </div>
+        {% endif %}
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem;">
+
+          {% if tr.treatment %}
+          <div style="background: linear-gradient(135deg, rgba(239,68,68,0.05), rgba(239,68,68,0.02)); border: 1px solid rgba(239,68,68,0.15); border-radius: 12px; padding: 1.2rem;">
+            <h3 style="font-size: 1rem; color: #dc3545; margin: 0 0 0.8rem 0;">
+              <i class="fas fa-first-aid"></i> Treatment Suggestions
+            </h3>
+            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+              {% for item in tr.treatment %}
+              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          {% if tr.prevention %}
+          <div style="background: linear-gradient(135deg, rgba(40,167,69,0.05), rgba(40,167,69,0.02)); border: 1px solid rgba(40,167,69,0.15); border-radius: 12px; padding: 1.2rem;">
+            <h3 style="font-size: 1rem; color: #28a745; margin: 0 0 0.8rem 0;">
+              <i class="fas fa-shield-alt"></i> Prevention Tips
+            </h3>
+            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+              {% for item in tr.prevention %}
+              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          {% if tr.irrigation %}
+          <div style="background: linear-gradient(135deg, rgba(52,152,219,0.05), rgba(52,152,219,0.02)); border: 1px solid rgba(52,152,219,0.15); border-radius: 12px; padding: 1.2rem;">
+            <h3 style="font-size: 1rem; color: #3498db; margin: 0 0 0.8rem 0;">
+              <i class="fas fa-tint"></i> Irrigation Guidance
+            </h3>
+            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+              {% for item in tr.irrigation %}
+              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          {% if tr.organic_control %}
+          <div style="background: linear-gradient(135deg, rgba(16,185,129,0.05), rgba(16,185,129,0.02)); border: 1px solid rgba(16,185,129,0.15); border-radius: 12px; padding: 1.2rem;">
+            <h3 style="font-size: 1rem; color: #10b981; margin: 0 0 0.8rem 0;">
+              <i class="fas fa-leaf"></i> Organic Control
+            </h3>
+            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+              {% for item in tr.organic_control %}
+              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          {% if tr.chemical_control %}
+          <div style="background: linear-gradient(135deg, rgba(255,193,7,0.05), rgba(255,193,7,0.02)); border: 1px solid rgba(255,193,7,0.15); border-radius: 12px; padding: 1.2rem;">
+            <h3 style="font-size: 1rem; color: #e67e22; margin: 0 0 0.8rem 0;">
+              <i class="fas fa-flask"></i> Chemical Control
+            </h3>
+            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+              {% for item in tr.chemical_control %}
+              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+          {% if tr.severity_advice %}
+          <div style="background: linear-gradient(135deg, rgba(108,117,125,0.05), rgba(108,117,125,0.02)); border: 1px solid rgba(108,117,125,0.15); border-radius: 12px; padding: 1.2rem;">
+            <h3 style="font-size: 1rem; color: #6c757d; margin: 0 0 0.8rem 0;">
+              <i class="fas fa-exclamation-circle"></i> Severity Advice
+            </h3>
+            <ul class="results-list" style="margin: 0; padding-left: 1rem;">
+              {% for item in tr.severity_advice %}
+              <li style="margin-bottom: 0.4rem; font-size: 0.88rem; line-height: 1.5;">{{ item }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+
+        </div>
+
+        {% if tr.is_fallback %}
+        <div style="margin-top: 1.2rem; padding: 0.8rem 1rem; border-radius: 10px; background: rgba(108,117,125,0.08); border: 1px dashed rgba(108,117,125,0.25); font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+          <i class="fas fa-info-circle"></i>
+          These are general agricultural guidelines. For disease-specific recommendations,
+          upload a clearer image or consult a local agricultural extension officer.
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
       {% if results.farmer_insights %}
       <div class="result-card">
         <h2 class="results-section-title" data-i18n="res_insights_title">
