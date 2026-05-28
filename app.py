@@ -1080,11 +1080,19 @@ def register_model():
         for field in required_fields:
             if field not in data:
                 return jsonify({"error": f"Missing required field: {field}"}), 400
+        provided_path = data["path"]
+        models_base = os.path.abspath("models")
+        abs_provided = os.path.abspath(provided_path)
+        if not abs_provided.startswith(models_base + os.sep) and abs_provided != models_base:
+            return (
+                jsonify({"error": "Invalid model path: must be inside the server 'models/' directory."}),
+                400,
+            )
 
         metadata = registry.register_model(
             model_type=data["model_type"],
             version=data["version"],
-            path=data["path"],
+            path=provided_path,
             accuracy=data.get("accuracy", 0.0),
             dataset_version=data.get("dataset_version", "unknown"),
             parameters=data.get("parameters", 0),
