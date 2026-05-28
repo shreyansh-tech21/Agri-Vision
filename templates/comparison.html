@@ -5,13 +5,13 @@
     <div class="comparison-shell">
         <div class="comparison-hero glass-card fade-in">
             <div>
-                <span class="comparison-kicker">AI FIELD MONITORING</span>
-                <h1>Field Photo Comparison</h1>
-                <p>Compare last week's cotton field photo with the current week using the same disease prediction model that powers Agri-Vision analysis.</p>
+                <span class="comparison-kicker" data-i18n="comp_hero_badge">AI FIELD MONITORING</span>
+                <h1 data-i18n="nav_comparison">Field Photo Comparison</h1>
+                <p data-i18n="comp_hero_desc">Compare last week's cotton field photo with the current week using the same disease prediction model that powers Agri-Vision analysis.</p>
             </div>
             <div class="comparison-hero-badge">
                 <i class="fas fa-brain"></i>
-                <span>ResNet50 + Crop Health Score</span>
+                <span data-i18n="comp_model_badge">ResNet50 + Crop Health Score</span>
             </div>
         </div>
 
@@ -25,8 +25,8 @@
                 <div class="comparison-card-header">
                     <span class="comparison-step">01</span>
                     <div>
-                        <h2>Last Week Field Image</h2>
-                        <p>Baseline crop condition</p>
+                        <h2 data-i18n="comp_old_title">Last Week Field Image</h2>
+                        <p data-i18n="comp_old_subtitle">Baseline crop condition</p>
                     </div>
                 </div>
                 <label class="comparison-dropzone" for="lastWeekInput" id="dropzone-lastWeek">
@@ -56,8 +56,8 @@
                 <div class="comparison-card-header">
                     <span class="comparison-step">02</span>
                     <div>
-                        <h2>Current Week Field Image</h2>
-                        <p>Latest crop condition</p>
+                        <h2 data-i18n="comp_new_title">Current Week Field Image</h2>
+                        <p data-i18n="comp_new_subtitle">Latest crop condition</p>
                     </div>
                 </div>
                 <label class="comparison-dropzone" for="currentWeekInput" id="dropzone-currentWeek">
@@ -97,7 +97,7 @@
             </div>
 
             <div class="comparison-submit-row">
-                <button type="submit" class="btn btn-primary comparison-submit">
+                <button type="submit" class="btn btn-primary comparison-submit" data-i18n="comp_btn_submit">
                     <i class="fas fa-chart-line"></i>
                     Compare Field Health
                 </button>
@@ -110,8 +110,8 @@
                 <i class="fas fa-exclamation-triangle"></i>
             </div>
             <div>
-                <h2>Unable to compare images</h2>
-                <p>{{ error_message }}</p>
+                <h2 data-i18n="comp_err_title">Unable to compare images</h2>
+                <p data-i18n="{{ error_message }}">{{ error_message }}</p>
             </div>
         </div>
         {% endif %}
@@ -122,17 +122,17 @@
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
             <div>
-                <h2>Comparison may be less reliable</h2>
-                <p>Some images did not return a confirmed cotton growth stage. Disease analysis is still shown, but review the photo quality or try clearer field images.</p>
+                <h2 data-i18n="comp_warn_title">Comparison may be less reliable</h2>
+                <p data-i18n="comp_warn_desc">Some images did not return a confirmed cotton growth stage. Disease analysis is still shown, but review the photo quality or try clearer field images.</p>
                 <ul>
                     {% if old_results is defined and old_results.warnings %}
                         {% for warning in old_results.warnings %}
-                            <li>Last week image: {{ warning }}</li>
+                            <li><span data-i18n="comp_old_label">Last week image:</span> <span data-i18n="{{ warning }}">{{ warning }}</span></li>
                         {% endfor %}
                     {% endif %}
                     {% if new_results is defined and new_results.warnings %}
                         {% for warning in new_results.warnings %}
-                            <li>Current week image: {{ warning }}</li>
+                            <li><span data-i18n="comp_new_label">Current week image:</span> <span data-i18n="{{ warning }}">{{ warning }}</span></li>
                         {% endfor %}
                     {% endif %}
                 </ul>
@@ -147,52 +147,56 @@
                     <i class="fas {{ comparison.trend.icon }}"></i>
                 </div>
                 <div>
-                    <span class="comparison-kicker">TREND</span>
-                    <h2>{{ comparison.trend.label }} by {{ comparison.abs_change_percentage|round(1) }}%</h2>
-                    <p>{{ comparison.recommendation }}</p>
+                    <span class="comparison-kicker" data-i18n="comp_trend_kicker">TREND</span>
+                    <h2>
+                        <span data-i18n="{{ comparison.trend.label }}">{{ comparison.trend.label }}</span> 
+                        <span data-i18n="comp_by">by</span> 
+                        {{ comparison.abs_change_percentage|round(1) }}%
+                    </h2>
+                    <p data-i18n="{{ comparison.recommendation }}">{{ comparison.recommendation }}</p>
                 </div>
             </div>
 
             <div class="comparison-metrics-grid">
                 <div class="comparison-result-card">
-                    <span>Old Prediction</span>
-                    <h3>{{ old_results.disease.predicted_class }}</h3>
-                    <p>{{ old_results.disease.confidence|round(2) }} confidence</p>
+                    <span data-i18n="comp_old_pred">Old Prediction</span>
+                    <h3 data-i18n="{{ old_results.disease.predicted_class }}">{{ old_results.disease.predicted_class }}</h3>
+                    <p>{{ old_results.disease.confidence|round(2) }} <span data-i18n="comp_conf">confidence</span></p>
                     <div class="comparison-score-bar">
                         <span style="width: {{ comparison.old_score|round(0) }}%;"></span>
                     </div>
-                    <strong>{{ comparison.old_score|round(1) }}% health score</strong>
+                    <strong>{{ comparison.old_score|round(1) }}% <span data-i18n="res_health">health score</span></strong>
                 </div>
 
                 <div class="comparison-result-card current">
-                    <span>New Prediction</span>
-                    <h3>{{ new_results.disease.predicted_class }}</h3>
-                    <p>{{ new_results.disease.confidence|round(2) }} confidence</p>
+                    <span data-i18n="comp_new_pred">New Prediction</span>
+                    <h3 data-i18n="{{ new_results.disease.predicted_class }}">{{ new_results.disease.predicted_class }}</h3>
+                    <p>{{ new_results.disease.confidence|round(2) }} <span data-i18n="comp_conf">confidence</span></p>
                     <div class="comparison-score-bar">
                         <span style="width: {{ comparison.new_score|round(0) }}%;"></span>
                     </div>
-                    <strong>{{ comparison.new_score|round(1) }}% health score</strong>
+                    <strong>{{ comparison.new_score|round(1) }}% <span data-i18n="res_health">health score</span></strong>
                 </div>
 
                 <div class="comparison-result-card delta trend-{{ comparison.trend.status }}">
-                    <span>Improvement/Decline</span>
+                    <span data-i18n="comp_change_title">Improvement/Decline</span>
                     <h3>
                         {% if comparison.change_percentage > 0 %}+{% endif %}{{ comparison.change_percentage|round(1) }}%
                     </h3>
-                    <p>{{ comparison.trend.label }} crop health</p>
+                    <p><span data-i18n="{{ comparison.trend.label }}">{{ comparison.trend.label }}</span> <span data-i18n="comp_crop_health">crop health</span></p>
                     <i class="fas {{ comparison.trend.icon }}"></i>
                 </div>
             </div>
 
             <div class="comparison-analysis-grid recommendation-only">
                 <div class="ai-recommendation-card glass-card">
-                    <span class="comparison-kicker">AI RECOMMENDATION</span>
-                    <h2>Next Field Action</h2>
-                    <p>{{ comparison.recommendation }}</p>
+                    <span class="comparison-kicker" data-i18n="comp_ai_recs">AI RECOMMENDATION</span>
+                    <h2 data-i18n="comp_next_action">Next Field Action</h2>
+                    <p data-i18n="{{ comparison.recommendation }}">{{ comparison.recommendation }}</p>
                     <div class="comparison-mini-meta">
                         <span><i class="fas fa-calendar-check"></i> {{ timestamp }}</span>
                         {% if new_results.growth.main_class %}
-                            <span><i class="fas fa-seedling"></i> {{ new_results.growth.main_class }}</span>
+                            <span><i class="fas fa-seedling"></i> <span data-i18n="{{ new_results.growth.main_class }}">{{ new_results.growth.main_class }}</span></span>
                         {% endif %}
                     </div>
                 </div>

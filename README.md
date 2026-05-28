@@ -68,6 +68,7 @@ Agri-Vision uses deep learning and computer vision techniques to:
 - [Tech Stack](#️-tech-stack)
 - [Dataset Information](#-dataset-information)
 - [Model Information](#-model-information)
+- [Model Performance & Benchmarking](docs/model-benchmarking.md)
 - [Project Structure](#-project-structure)
 - [Setup & Execution](#-setup--execution)
 - [API Reference](#️-api-reference)
@@ -204,9 +205,13 @@ Model Used - ResNet50
 
 Parameters - 25.6M
 
+### Grad-CAM Explainability
+Successful cotton disease classifications can include a Grad-CAM heatmap overlay generated from the final ResNet50 convolutional block (`layer4[-1]`). Generated visualizations are saved under `static/generated/gradcam/` and surfaced in the results page and API responses when available.
+
 
 # 📊 Model Results
 Check training curves and result snapshots inside the `results/` directory.
+For confusion matrices, benchmark tables, and reproducibility notes, see [Model Performance & Benchmarking](docs/model-benchmarking.md).
 
 ## Metrics for YOLOv8 (Growth Stage Prediction)
 mAP50 - 60.06%  
@@ -316,9 +321,49 @@ Using Docker is the easiest way to run Agri-Vision as it avoids system dependenc
 1. Ensure you have [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed.
 2. Clone the repository and navigate into it:
    ```bash
-   git clone <repository-url>
-   cd <project-folder>
+  git clone <https://github.com/neeru24/Agri-Vision>
+  cd <Agri-Vision>
+  ### Create Virtual Environment
+
+```bash
+python -m venv venv
+
+
+Be careful with the markdown formatting/backticks.
+
+
+### Activate Virtual Environment
+
+For Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+For macOS/Linux:
+
+```bash
+source venv/bin/activate
+```
    ```
+
+   ### Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### Run the Flask App
+
+```bash
+python app.py
+```
+### Open in Browser
+
+```txt
+http://127.0.0.1:5000/
+```
+
 3. Build and start the container:
    ```bash
    docker-compose up --build
@@ -334,11 +379,28 @@ If you prefer to run the project natively using Python (requires Python 3.8+):
 ### 1️⃣ Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd <project-folder>
+git clone https://github.com/neeru24/Agri-Vision.git
+cd Agri-Vision
 ```
 
-### 2️⃣ Create a `.env` File
+### 2️⃣ Create and Activate a Virtual Environment
+
+#### macOS/Linux
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+#### Windows
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+
+### 3️⃣ Create a `.env` File
 
 Create a `.env` file in the root directory of the project and add your secret key.
 
@@ -346,7 +408,7 @@ Create a `.env` file in the root directory of the project and add your secret ke
 SECRET_KEY=your_secret_key_here
 ```
 
-### 3️⃣ Install Python Dependencies
+### 4️⃣ Install Python Dependencies
 
 Install all the required Python packages using:
 
@@ -354,7 +416,7 @@ Install all the required Python packages using:
 pip install -r requirements.txt
 ```
 
-### 4️⃣ Run the Project
+### 5️⃣ Run the Project
 
 Start the application explicitly by running:
 

@@ -1,6 +1,8 @@
 import base64
 import io
 import json
+from flask_login import login_user
+from models import User, db
 
 import cv2
 import numpy as np
@@ -12,12 +14,33 @@ import app
 
 
 # --- Add Missing Fixtures Here ---
-@pytest.fixture
-def client():
+@pytest.fixture(scope="session")
+def app_with_db():
     app.app.config["TESTING"] = True
     app.app.config["LOGIN_DISABLED"] = True
     app.app.config["UPLOAD_FOLDER"] = "./static/uploads"
-    with app.app.test_client() as client:
+    app.app.config["SECRET_KEY"] = "test-secret"
+    app.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
+    
+    with app.app.app_context():
+        db.create_all()
+        test_user = User(
+            id=1, 
+            email="test@example.com", 
+            full_name="Test User",
+            password_hash="pbkdf2:sha256:260000$test$test"
+        )
+        db.session.add(test_user)
+        db.session.commit()
+        yield app.app
+        db.drop_all()
+
+@pytest.fixture
+def client(app_with_db):
+    with app_with_db.test_client() as client:
+        with client.session_transaction() as sess:
+            sess['_user_id'] = '1'
+            sess['_fresh'] = True
         yield client
 
 
