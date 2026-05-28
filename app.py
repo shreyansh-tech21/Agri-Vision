@@ -1737,6 +1737,15 @@ def analyze():
                     + generate_weather_recommendations(weather)
                 )[:6]
                 results["weather"] = weather
+                
+                # Recalculate yield estimate using the fetched weather data
+                if "yield_estimate" in results:
+                    results["yield_estimate"] = estimate_yield(
+                        results["disease"],
+                        results["growth"],
+                        weather=weather,
+                        field_acres=results["yield_estimate"].get("field_acres", 1.0)
+                    )
 
             # Add forecast data if location provided
             forecast_data = None
