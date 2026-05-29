@@ -1069,7 +1069,7 @@ def admin_dashboard():
     if not current_user.is_researcher():
         flash("Access denied. Researchers and Admins only.", "danger")
         return redirect(url_for("index"))
-    return render_template("admin.html")
+    return render_template("admin_dashboard.html")
 
 
 # --- Model Management Admin Endpoints ---
