@@ -20,6 +20,7 @@ def app_with_db():
     app.app.config["LOGIN_DISABLED"] = True
     app.app.config["UPLOAD_FOLDER"] = "./static/uploads"
     app.app.config["SECRET_KEY"] = "test-secret"
+    app.app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
     app.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///:memory:"
     
     with app.app.app_context():
@@ -634,4 +635,33 @@ def test_api_chat_fallback_response(client):
     assert resp.status_code == 200
     data = json.loads(resp.data)
     assert "Agri-Vision AI assistant" in data["reply"]
+
+
+def test_api_batch_status_stream_not_found(client):
+    resp = client.get("/api/batch_status/nonexistent-job-id/stream")
+    assert resp.status_code == 404
+
+
+def test_api_batch_status_stream_valid(client):
+    from models import BatchJob, db
+    with app.app.app_context():
+        job = BatchJob(id="test-sse-job", total_images=1, status="pending")
+        db.session.add(job)
+        db.session.commit()
+    
+    resp = client.get("/api/batch_status/test-sse-job/stream")
+    assert resp.status_code == 200
+    assert resp.mimetype == "text/event-stream"
+    
+    # Verify we can read the streamed chunks
+    data_chunks = []
+    for chunk in resp.response:
+        data_chunks.append(chunk.decode("utf-8"))
+        break
+        
+    assert len(data_chunks) > 0
+    assert "data:" in data_chunks[0]
+    payload = json.loads(data_chunks[0].replace("data:", "").strip())
+    assert payload["job"]["id"] == "test-sse-job"
+
 

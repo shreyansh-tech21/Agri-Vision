@@ -489,11 +489,57 @@
             window.location.href = `/api/batch_results/${jobId}/export/pdf`;
         }
         
-        // Initial load
-        loadResults();
+        // Setup EventSource for Server-Sent Events (SSE) progress streaming
+        let eventSource = null;
         
-        // Auto-refresh every 3 seconds
-        refreshInterval = setInterval(loadResults, 3000);
+        function startRealTimeStreaming() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            if (!!window.EventSource) {
+                console.log('SSE supported. Initializing real-time progress update stream...');
+                refreshBtn.classList.add('spinning');
+                
+                eventSource = new EventSource(`/api/batch_status/${jobId}/stream`);
+                
+                eventSource.onmessage = function(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        console.log('Real-time progress update received:', data);
+                        
+                        updateStatus(data.job);
+                        updateResults(data);
+                        
+                        if (data.job.status === 'completed' || data.job.status === 'failed') {
+                            console.log('Job finished. Closing real-time stream.');
+                            eventSource.close();
+                            refreshBtn.classList.remove('spinning');
+                            document.getElementById('actionButtons').style.display = 'flex';
+                        }
+                    } catch (e) {
+                        console.error('Error parsing real-time progress payload:', e);
+                    }
+                };
+                
+                eventSource.onerror = function(err) {
+                    console.warn('Real-time stream connection encountered an issue or closed. Falling back to robust polling...', err);
+                    eventSource.close();
+                    refreshBtn.classList.remove('spinning');
+                    
+                    // Failover fallback to periodic polling
+                    if (!refreshInterval) {
+                        loadResults();
+                        refreshInterval = setInterval(loadResults, 3000);
+                    }
+                };
+            } else {
+                console.warn('EventSource is not supported in this browser. Using periodic polling.');
+                loadResults();
+                refreshInterval = setInterval(loadResults, 3000);
+            }
+        }
+        
+        // Start streaming
+        startRealTimeStreaming();
     </script>
 </body>
 </html>

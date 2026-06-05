@@ -1548,19 +1548,53 @@ def download_analysis_report():
 
         if image_b64:
             try:
-                image_data = base64.b64decode(
+                # Decoded Original Image
+                orig_data = base64.b64decode(
                     image_b64.split(",")[-1] if "," in image_b64 else image_b64
                 )
-                img_pil = PILImage.open(BytesIO(image_data))
-                img_width = 6 * inch
-                img_height = img_width * img_pil.height / img_pil.width
-                if img_height > 3.5 * inch:
-                    img_height = 3.5 * inch
-                    img_width = img_height * img_pil.width / img_pil.height
-
-                img_buffer = BytesIO(image_data)
-                rl_image = RLImage(img_buffer, width=img_width, height=img_height)
-                elements.append(rl_image)
+                orig_pil = PILImage.open(BytesIO(orig_data))
+                
+                # If Grad-CAM overlay image is also provided
+                if gradcam_image_b64:
+                    gc_data = base64.b64decode(
+                        gradcam_image_b64.split(",")[-1] if "," in gradcam_image_b64 else gradcam_image_b64
+                    )
+                    gc_pil = PILImage.open(BytesIO(gc_data))
+                    
+                    # Create side-by-side RLImages of 2.85 inches wide
+                    w = 2.85 * inch
+                    h = w * orig_pil.height / orig_pil.width
+                    if h > 2.2 * inch:
+                        h = 2.2 * inch
+                        w = h * orig_pil.width / orig_pil.height
+                        
+                    rl_orig = RLImage(BytesIO(orig_data), width=w, height=h)
+                    rl_gc = RLImage(BytesIO(gc_data), width=w, height=h)
+                    
+                    # Create a side-by-side table
+                    image_table_data = [
+                        [Paragraph("<b>Original Leaf Image</b>", normal_style), Paragraph("<b>Explainable AI (Grad-CAM Overlay)</b>", normal_style)],
+                        [rl_orig, rl_gc]
+                    ]
+                    img_table = Table(image_table_data, colWidths=[3 * inch, 3 * inch])
+                    img_table.setStyle(TableStyle([
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                        ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ]))
+                    elements.append(img_table)
+                else:
+                    # Single original image standard display
+                    img_width = 6 * inch
+                    img_height = img_width * orig_pil.height / orig_pil.width
+                    if img_height > 3.5 * inch:
+                        img_height = 3.5 * inch
+                        img_width = img_height * orig_pil.width / orig_pil.height
+                    
+                    rl_orig = RLImage(BytesIO(orig_data), width=img_width, height=img_height)
+                    elements.append(rl_orig)
+                
                 elements.append(Spacer(1, 0.15 * inch))
             except Exception as e:
                 logger.warning(f"Could not embed image in PDF: {e}")
@@ -1867,13 +1901,13 @@ def analyze():
             predicted_class = results.get("disease", {}).get("predicted_class", "")
             disease_info = disease_info_map.get(predicted_class, {})
 
+            import time
+            unique_filename = f"{int(time.time())}_{safe_filename}"
+            file_path = os.path.join("static", "uploads", unique_filename)
+            cv2.imwrite(file_path, image)
+            
             from models import AnalysisHistory, db
             if current_user.is_authenticated:
-                import time
-                unique_filename = f"{int(time.time())}_{safe_filename}"
-                file_path = os.path.join("static", "uploads", unique_filename)
-                cv2.imwrite(file_path, image)
-                
                 history_entry = AnalysisHistory(
                     user_id=current_user.id,
                     image_path=unique_filename,
@@ -1889,6 +1923,8 @@ def analyze():
                 "results.html",
                 results=results,
                 filename=safe_filename,
+                unique_filename=unique_filename,
+                disease_classes=disease_classes,
                 image_b64=encode_image_for_display(image_rgb),
                 img_shape={"width": image.shape[1], "height": image.shape[0]},
                 raw_json=json.dumps(results, indent=2),
@@ -1954,6 +1990,78 @@ def api_explain():
         )
     except Exception as exc:
         logger.error("Error in API explain endpoint: %s", exc)
+        return jsonify({"status": "error", "error": str(exc)}), 500
+
+
+@app.route("/api/explain/target", methods=["POST"])
+def api_explain_target():
+    """Dynamically generate Grad-CAM for a specified target disease class index"""
+    try:
+        data = request.get_json() or {}
+        image_path = data.get("image_path")
+        target_class_idx = data.get("target_class_idx")
+        
+        if not image_path:
+            return jsonify({"status": "error", "error": "No image_path provided"}), 400
+        if target_class_idx is None:
+            return jsonify({"status": "error", "error": "No target_class_idx provided"}), 400
+            
+        try:
+            target_class_idx = int(target_class_idx)
+            if not (0 <= target_class_idx < len(disease_classes)):
+                return jsonify({"status": "error", "error": "Invalid target_class_idx"}), 400
+        except ValueError:
+            return jsonify({"status": "error", "error": "target_class_idx must be an integer"}), 400
+            
+        from werkzeug.utils import secure_filename
+        safe_filename = secure_filename(image_path)
+        full_image_path = os.path.join("static", "uploads", safe_filename)
+        if not os.path.exists(full_image_path):
+            return jsonify({"status": "error", "error": f"Original image file not found: {safe_filename}"}), 404
+            
+        image = cv2.imread(full_image_path)
+        if image is None:
+            return jsonify({"status": "error", "error": "Failed to read original image file"}), 500
+            
+        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        
+        if model_manager.resnet_model is None:
+            return jsonify({"status": "error", "error": "Classification model is not loaded"}), 500
+            
+        input_tensor = preprocess_image_for_resnet(image_rgb)
+        
+        from services.gradcam import generate_gradcam_explanation
+        import hashlib
+        image_hash = hashlib.sha256(image_rgb.tobytes()).hexdigest()
+        
+        gradcam_result = generate_gradcam_explanation(
+            model=model_manager.resnet_model,
+            input_tensor=input_tensor,
+            image_rgb=image_rgb,
+            target_class_idx=target_class_idx,
+            filename_prefix=f"{image_hash[:16]}_{target_class_idx}",
+        )
+        
+        if (
+            gradcam_result.available
+            and gradcam_result.overlay_image is not None
+            and gradcam_result.heatmap_image is not None
+        ):
+            overlay_b64 = encode_image_for_display(gradcam_result.overlay_image)
+            heatmap_only_b64 = encode_image_for_display(gradcam_result.heatmap_image)
+            
+            return jsonify({
+                "status": "success",
+                "overlay_b64": overlay_b64,
+                "heatmap_only_b64": heatmap_only_b64,
+                "target_class": disease_classes[target_class_idx],
+                "target_layer": gradcam_result.target_layer
+            })
+        else:
+            return jsonify({"status": "error", "error": gradcam_result.error or "Failed to generate Grad-CAM explanation"}), 500
+            
+    except Exception as exc:
+        logger.error("Dynamic target Grad-CAM generation failed: %s", exc)
         return jsonify({"status": "error", "error": str(exc)}), 500
 
 
@@ -2505,6 +2613,96 @@ def api_batch_results(job_id):
             "results": results,
         }
     )
+
+
+@app.route("/api/batch_status/<job_id>/stream", methods=["GET"])
+@login_required
+def api_batch_status_stream(job_id):
+    """Stream real-time status and results for a batch job using Server-Sent Events (SSE)"""
+    from models import BatchJob, db
+    import json
+    import time
+    
+    # Check if job exists
+    job = BatchJob.query.get(job_id)
+    if not job:
+        return jsonify({"error": "Batch job not found"}), 404
+        
+    def event_generator():
+        while True:
+            payload = None
+            is_finished = False
+            
+            # We must run database queries within app_context
+            with app.app_context():
+                # Refresh job from DB
+                db.session.expire_all()
+                current_job = BatchJob.query.get(job_id)
+                if not current_job:
+                    payload = {"error": "Job deleted"}
+                    is_finished = True
+                else:
+                    # Update completed/failed counts
+                    results = current_job.results
+                    completed = len([r for r in results if r.status in ("complete", "success")])
+                    failed = len([r for r in results if r.status == "error"])
+                    
+                    # Check completion status
+                    if completed + failed >= current_job.total_images and current_job.total_images > 0:
+                        current_job.status = "completed"
+                        if not current_job.completed_at:
+                            current_job.completed_at = datetime.utcnow()
+                        db.session.commit()
+                    
+                    job_dict = current_job.to_dict()
+                    # Include total, completed, failed counts in job_dict
+                    job_dict["completed_images"] = completed
+                    job_dict["failed_images"] = failed
+                    
+                    # Also include per-image results that are already processed or processing so far
+                    results_list = []
+                    for r in results:
+                        results_list.append({
+                            "id": r.id,
+                            "image_name": r.image_name,
+                            "image_index": r.image_index,
+                            "status": r.status,
+                            "disease_class": r.disease_class,
+                            "disease_confidence": r.disease_confidence,
+                            "health_score": r.health_score,
+                            "growth_class": r.growth_class,
+                            "growth_confidence": r.growth_confidence,
+                            "error_message": r.error_message,
+                            "results": r.results_json
+                        })
+                    
+                    results_list.sort(key=lambda x: x["image_index"])
+                    
+                    payload = {
+                        "job": job_dict,
+                        "results": results_list
+                    }
+                    
+                    if current_job.status in ("completed", "failed"):
+                        is_finished = True
+            
+            # Yield outside the app context block to prevent AssertionError on GeneratorExit teardown
+            if "error" in payload:
+                yield "event: error\ndata: " + json.dumps(payload) + "\n\n"
+            else:
+                yield f"data: {json.dumps(payload)}\n\n"
+                
+            if is_finished:
+                break
+                
+            time.sleep(1.0)
+            
+    return Response(stream_with_context(event_generator()), mimetype="text/event-stream", headers={
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no"
+    })
+
 
 
 @app.route("/api/batch_results/<job_id>/export/csv", methods=["GET"])

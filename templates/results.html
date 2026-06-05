@@ -741,11 +741,42 @@
         <div class="explainability-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 2.5rem;">
           <!-- Dual Interactive Viewer -->
           <div class="explainability-viewer-card" style="background: rgba(0,0,0,0.01); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--card-border); text-align: center;">
-            <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0; margin-bottom: 1rem;"><i class="fas fa-sliders-h" style="color: var(--ai-blue, #3b82f6);"></i> Interactive Blended Heatmap</h3>
+            <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0; margin-bottom: 1.2rem;"><i class="fas fa-sliders-h" style="color: var(--ai-blue, #3b82f6);"></i> Interactive Explainability Controls</h3>
+            
+            <!-- Controls panel -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.4rem; text-align: left;">
+                <label for="gradcam-target-class" style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Target Disease Class:</label>
+                <select id="gradcam-target-class" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--card-border); background-color: white; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; outline: none;">
+                  {% for idx in range(disease_classes|length) %}
+                    <option value="{{ idx }}" {% if disease_classes[idx] == results.disease.predicted_class %}selected{% endif %}>{{ disease_classes[idx] }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.4rem; text-align: left;">
+                <label for="gradcam-blend-mode" style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Overlay Blend Mode:</label>
+                <select id="gradcam-blend-mode" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--card-border); background-color: white; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; outline: none;">
+                  <option value="normal" selected>Blended Overlay (Standard)</option>
+                  <option value="multiply">Multiply (Texture Integrated)</option>
+                  <option value="screen">Screen (Neon Highlights)</option>
+                  <option value="overlay">Overlay (Balanced Contrast)</option>
+                  <option value="color-dodge">Color Dodge (Extreme Focus)</option>
+                  <option value="pure-heatmap">Pure Heatmap Only</option>
+                  <option value="pure-leaf">Original Leaf Only</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Viewer Container with Spinner Overlay -->
             <div class="blended-viewer-container" style="position: relative; width: 100%; max-width: 420px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border: 2px solid var(--card-border);">
               <img id="explain-base-img" src="data:image/jpeg;base64,{{ image_b64 }}" alt="Base Crop Image" style="display: block; width: 100%; height: auto;" />
               <img id="explain-heatmap-img" src="data:image/jpeg;base64,{{ heatmap_only_b64 }}" alt="Pure Heatmap" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.5; mix-blend-mode: normal; pointer-events: none; transition: opacity 0.05s ease;" />
+              <div id="gradcam-spinner" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 10;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2.2rem; color: var(--ai-blue, #3b82f6); margin-bottom: 0.6rem;"></i>
+                <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">Computing Heatmap...</span>
+              </div>
             </div>
+            
             <div class="opacity-control-wrap" style="margin-top: 1.5rem; padding: 0 1rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                 <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Original Image</span>
@@ -887,9 +918,85 @@
     var heatmapImg = document.getElementById('explain-heatmap-img');
     var opacityBadge = document.getElementById('opacity-badge');
 
+    // Dynamic blend mode and target class selectors
+    const uniqueFilename = '{{ unique_filename }}';
+    var targetClassSelector = document.getElementById('gradcam-target-class');
+    var blendModeSelector = document.getElementById('gradcam-blend-mode');
+    var spinner = document.getElementById('gradcam-spinner');
+    var baseImg = document.getElementById('explain-base-img');
+
+    // Dynamic blend mode controller
+    if (blendModeSelector && heatmapImg && baseImg) {
+      blendModeSelector.addEventListener('change', function () {
+        const mode = blendModeSelector.value;
+        if (mode === 'pure-heatmap') {
+          baseImg.style.visibility = 'hidden';
+          heatmapImg.style.visibility = 'visible';
+          heatmapImg.style.opacity = '1.0';
+          heatmapImg.style.mixBlendMode = 'normal';
+          if (opacitySlider) opacitySlider.disabled = true;
+        } else if (mode === 'pure-leaf') {
+          baseImg.style.visibility = 'visible';
+          heatmapImg.style.visibility = 'hidden';
+          if (opacitySlider) opacitySlider.disabled = true;
+        } else {
+          baseImg.style.visibility = 'visible';
+          heatmapImg.style.visibility = 'visible';
+          heatmapImg.style.mixBlendMode = mode;
+          if (opacitySlider) {
+            opacitySlider.disabled = false;
+            heatmapImg.style.opacity = opacitySlider.value / 100;
+          }
+        }
+      });
+    }
+
+    // Dynamic alternative class Grad-CAM generator
+    if (targetClassSelector && uniqueFilename && spinner && heatmapImg) {
+      targetClassSelector.addEventListener('change', async function () {
+        const classIdx = targetClassSelector.value;
+        spinner.style.opacity = '1';
+        
+        try {
+          const response = await fetch('/api/explain/target', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              image_path: uniqueFilename,
+              target_class_idx: parseInt(classIdx, 10)
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`API Error: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          if (data.status === 'success') {
+            // Swap in the new pure heatmap base64 source!
+            heatmapImg.src = 'data:image/jpeg;base64,' + data.heatmap_only_b64;
+            console.log('Succeeded generating Grad-CAM for:', data.target_class);
+          } else {
+            throw new Error(data.error || 'Failed to update heatmap');
+          }
+        } catch (error) {
+          console.error('Error computing Grad-CAM:', error);
+          alert('Could not compute Grad-CAM for this class: ' + error.message);
+        } finally {
+          spinner.style.opacity = '0';
+        }
+      });
+    }
+
     if (opacitySlider && heatmapImg && opacityBadge) {
       opacitySlider.addEventListener('input', function () {
         var opacityValue = opacitySlider.value;
+        // Don't override opacity if in pure-heatmap/pure-leaf modes
+        if (blendModeSelector && (blendModeSelector.value === 'pure-heatmap' || blendModeSelector.value === 'pure-leaf')) {
+          return;
+        }
         heatmapImg.style.opacity = opacityValue / 100;
         opacityBadge.innerHTML = opacityValue + '% Heatmap';
       });
@@ -1295,6 +1402,4 @@ function readInsights() {
       localStorage.setItem("cropHistory", JSON.stringify(cropHistory));
   });
 </script>
-
 {% endblock %}
-    {% endblock %}
