@@ -3017,11 +3017,16 @@ nav a[href="/model-admin"]:hover {
         font-size: 1.2rem;
         cursor: pointer;
         padding: 5px;
-        transition: color 0.3s ease;
+        transition: color 0.3s ease, transform 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
         line-height: 1;
+    }
+
+    .theme-toggle-btn:hover {
+        transform: scale(1.15);
+        color: var(--emerald-green);
     }
 
     /* KEYFRAME ANIMATIONS */
