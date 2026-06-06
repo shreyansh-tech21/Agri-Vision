@@ -96,7 +96,14 @@ limiter = Limiter(
     strategy="fixed-window",
 )
 from models import db
+from sqlite_db import configure_sqlite_immediate_transactions
+
 db.init_app(app)
+
+# Serialize concurrent writers on SQLite (e.g. refresh-token rotation).
+with app.app_context():
+    configure_sqlite_immediate_transactions(db.engine)
+
 
 # --- Login Manager Configuration ---
 login_manager = LoginManager()

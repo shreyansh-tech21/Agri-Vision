@@ -12,16 +12,17 @@ from models import db, User, RefreshTokenFamily, RefreshToken
 
 
 @pytest.fixture()
-def app_with_db(monkeypatch):
-    # Uses the existing pytest configuration; relies on app.py db.init_app already.
-    # Import app to create application context.
+def app_with_db(tmp_path, monkeypatch):
+    """SQLite under ``tmp_path`` so all threads share one DB file (not isolated :memory: per connection)."""
     import app as flask_app
 
-    flask_app.app.config.update(
-        {"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:"}
-    )
+    db_path = tmp_path / "refresh_rotation_test.db"
+    uri = "sqlite:///" + str(db_path).replace("\\", "/")
+
+    flask_app.app.config.update({"TESTING": True, "SQLALCHEMY_DATABASE_URI": uri})
 
     with flask_app.app.app_context():
+        db.engine.dispose()
         db.create_all()
         yield flask_app.app
         db.session.remove()
@@ -94,6 +95,17 @@ def test_successful_rotation_rejects_old_token(app_with_db):
 
 
 def test_concurrent_refresh_only_one_succeeds(app_with_db):
+    """Race two threads on the same refresh token; exactly one rotation wins.
+    - Loser should raise ``RefreshRotationError`` with code ``reuse`` (token already
+      revoked under ``with_for_update`` in ``rotate_refresh_token``).
+    - Each worker uses ``with app.app_context()`` because Flask's application
+      context is thread-local; workers do not inherit the main thread's context.
+    - File-backed SQLite (see ``app_with_db``) gives one shared database for all
+      connections; raw ``sqlite:///:memory:`` can attach each connection to a
+      different empty DB and makes this harness flaky.
+    Stress locally: ``pytest tests/test_refresh_rotation.py::test_concurrent_refresh_only_one_succeeds --count=50``
+    (requires ``pytest-repeat``) or a shell loop.
+    """
     from auth.jwt_utils import new_jti
 
     with app_with_db.app_context():
@@ -127,16 +139,17 @@ def test_concurrent_refresh_only_one_succeeds(app_with_db):
         results = {"ok": [], "err": []}
 
         def worker(idx: int) -> None:
-            try:
-                access, refresh2 = rotate_refresh_token(
-                    raw_refresh_token=refresh_raw,
-                    request_id=f"req{idx}",
-                    ip="127.0.0.1",
-                    user_agent="pytest",
-                )
-                results["ok"].append((access, refresh2))
-            except RefreshRotationError as e:
-                results["err"].append((e.code, str(e)))
+            with app_with_db.app_context():
+                try:
+                    access, refresh2 = rotate_refresh_token(
+                        raw_refresh_token=refresh_raw,
+                        request_id=f"req{idx}",
+                        ip="127.0.0.1",
+                        user_agent="pytest",
+                    )
+                    results["ok"].append((access, refresh2))
+                except RefreshRotationError as e:
+                    results["err"].append((e.code, str(e)))
 
         t1 = threading.Thread(target=worker, args=(1,))
         t2 = threading.Thread(target=worker, args=(2,))
@@ -147,4 +160,6 @@ def test_concurrent_refresh_only_one_succeeds(app_with_db):
 
         assert len(results["ok"]) == 1
         assert len(results["err"]) == 1
+        loser_code = results["err"][0][0]
+        assert loser_code == "reuse", f"expected loser reuse, got {loser_code!r}"
 
