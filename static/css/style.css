@@ -444,15 +444,54 @@ body {
     opacity: 1 !important;
 }
 
+
+/* 
+   CTA BUTTON HOVER ACCESSIBILITY IMPROVEMENT
+
+   Purpose:
+   Improve the readability and visual accessibility of
+   primary call-to-action buttons during hover interactions.
+
+   Background:
+   The previous implementation used black text on top of
+   green gradient backgrounds. Although functional, this
+   could create reduced visual contrast under certain
+   theme configurations and display environments.
+
+   Improvements:
+   - Increased text visibility on hover states
+   - Better contrast against gradient backgrounds
+   - Consistent user experience across light and dark themes
+   - Improved accessibility for interactive elements
+   - Enhanced visual feedback during navigation
+
+   Affected Components:
+   - Navigation CTA buttons
+   - Primary action buttons
+   - Dark theme hover states
+   - Global button interaction styling
+
+   Notes:
+   This change is purely presentational and does not modify
+   any application logic, routing behavior, authentication
+   workflows, API integrations, or backend functionality.
+
+   Future Considerations:
+   - WCAG contrast validation
+   - Theme-specific hover customization
+   - Additional accessibility audits
+   - Consistent hover-state standardization across the UI
+ */
+
 .nav-menu .btn-primary:hover {
-    color: #000000 !important;
+    color: #ffffff !important;
     opacity: 1 !important;
 }
 
 [data-theme="dark"] .btn-primary:hover,
 [data-theme="dark"] .btn-primary:hover *,
 [data-theme="dark"] .nav-menu .btn-primary:hover {
-    color: #000000 !important;
+    color: #ffffff !important;
     opacity: 1 !important;
 }
 
@@ -534,7 +573,7 @@ nav a[href="/model-admin"]:hover {
 .btn-primary:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 30px rgba(46, 139, 87, 0.35);
-    color: #000000 !important;
+    color: #ffffff !important;
 }
 
 .btn-primary:hover::before {
