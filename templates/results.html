@@ -858,11 +858,17 @@
           <p style="margin: 0 0 1rem 0; font-size: 0.88rem; color: var(--text-muted);">The deep learning object detection model recognized multiple cotton elements in the uploaded frame:</p>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
             {% for box in growth.boxes %}
-            <div style="background: white; border: 1px solid var(--card-border); border-radius: 8px; padding: 0.8rem; display: flex; align-items: center; gap: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
+            <div style="background: white; border: 1px solid var(--card-border); border-radius: 8px; padding: 1rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
               <span style="font-size: 1.2rem; color: #10b981;">🌿</span>
               <div>
                 <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">{{ box.class_name }}</div>
                 <div style="font-size: 0.8rem; color: var(--text-muted);">Confidence: <b>{{ (box.confidence * 100)|round(1) }}%</b></div>
+                <div class="bbox-coordinates">
+                    <span>X1: {{ box.bbox[0]|int }}</span>
+                    <span>Y1: {{ box.bbox[1]|int }}</span>
+                    <span>X2: {{ box.bbox[2]|int }}</span>
+                    <span>Y2: {{ box.bbox[3]|int }}</span>
+                </div>
               </div>
             </div>
             {% endfor %}
@@ -906,7 +912,7 @@
         - Better icon alignment
         - Consistent hover feedback
      -->
-        
+
       <div style="display:flex; justify-content:flex-end; gap:1.2rem; margin-top:2rem; margin-bottom:2rem; flex-wrap:wrap;">
         <button onclick="readInsights()" class="btn-action btn-action-primary" data-i18n="res_voice" aria-label="Read analysis insights aloud using voice assistant">
           <i class="fas fa-volume-up"></i> Voice Assistant
