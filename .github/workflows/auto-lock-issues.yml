@@ -5,7 +5,9 @@ on:
     - cron: "0 */12 * * *"   # Runs every 12 hours
   workflow_dispatch:         
 
-permissions:
+permissions: 
+  contents: write 
+  pull-requests: write 
   issues: write
 
 jobs:
@@ -14,7 +16,7 @@ jobs:
 
     steps:
       - name: Lock old closed issues
-        uses: dessant/lock-threads@v5
+        uses: dessant/lock-threads@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -24,7 +26,7 @@ jobs:
           process-only: issues
           exclude-any-issue-labels: "pinned,keep-open"
 
-          lock-issue-comment: >
+          issue-comment: >
             This issue has been automatically locked because it was closed
             and inactive for 2 days. Please open a new issue if you still
             face the problem.

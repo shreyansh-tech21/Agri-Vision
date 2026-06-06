@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agri-Vision | AI-Powered Cotton Crop Intelligence</title>
-    <!-- Prevent FOUC by setting theme immediately -->
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/favicon.png">
     <script>
         (function() {
             try {
@@ -18,44 +18,426 @@
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- PDF.js for PDF to Image conversion -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <!-- Three.js CDN for interactive 3D model simulation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        /* ═══════════════════════════════════════
+           CHATBOT WIDGET — Full Premium CSS
+        ═══════════════════════════════════════ */
+
+        /* 1. Widget base: transition-driven collapse (no display:none flash) */
+        .chatbot-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            height: 450px;
+            max-height: calc(100vh - 40px);
+            background: var(--card-bg, var(--bg-card, #ffffff));
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--card-border, var(--border-color, #e0e0e0));
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.3s;
+        }
+
+        /* 2. Collapsed state — smooth fade + slide out */
+        .chatbot-widget.collapsed {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+            pointer-events: none;
+        }
+
+        /* 3. Launcher bubble */
+        .chatbot-launcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--emerald-green, #2e8b57);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            pointer-events: auto;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        visibility 0.3s,
+                        box-shadow 0.2s;
+        }
+        .chatbot-launcher:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .chatbot-launcher.launcher-hidden {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.5);
+            pointer-events: none;
+        }
+
+        /* 4. Focus-visible for keyboard/accessibility */
+        .chatbot-launcher:focus-visible,
+        .chatbot-close-btn:focus-visible {
+            outline: 2px solid var(--emerald-green, #2e8b57);
+            outline-offset: 2px;
+        }
+
+        /* 5. Header */
+        .chatbot-header {
+            background: var(--emerald-green, #2e8b57);
+            color: #ffffff;
+            padding: 12px 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        /* 6. Close button */
+        .chatbot-close-btn {
+            background: none;
+            border: none;
+            color: #ffffff;
+            opacity: 0.85;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .chatbot-close-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* 7. Body + messages */
+        .chatbot-body {
+            flex-grow: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: var(--bg-main, var(--bg-body, #f9f9f9));
+        }
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        .ai-message {
+            background: var(--bg-chat-ai, #e8f5e9);
+            color: var(--text-color, #333333);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .user-message {
+            background: var(--emerald-green, #2e8b57);
+            color: #ffffff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* 8. Error message card */
+        .chat-message.error-message {
+            background: var(--error-bg, rgba(220, 53, 69, 0.1));
+            color: var(--error-text, #721c24);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            align-self: center;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            max-width: 90%;
+        }
+
+        /* 9. Input row */
+        .chat-input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid var(--card-border, var(--border-color, #e0e0e0));
+            background: var(--card-bg, var(--bg-card, #ffffff));
+            flex-shrink: 0;
+        }
+        .chat-input-container input {
+            flex-grow: 1;
+            border: 1px solid var(--card-border, var(--border-color, #e0e0e0));
+            border-radius: 20px;
+            padding: 8px 15px;
+            outline: none;
+            background: transparent;
+            color: var(--text-color, #333333);
+        }
+        .chat-send-btn {
+            background: none;
+            border: none;
+            color: var(--emerald-green, #2e8b57);
+            cursor: pointer;
+            padding: 0 10px;
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .chat-send-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* 10. Bouncing typing indicator */
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 12px !important;
+            width: fit-content;
+        }
+        .loading-indicator .dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--text-color, #555555);
+            border-radius: 50%;
+            opacity: 0.4;
+            animation: chatbot-pulse 1.2s infinite ease-in-out;
+        }
+        .loading-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes chatbot-pulse {
+            0%, 100% { transform: translateY(0); opacity: 0.4; }
+            50%       { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* 11. Dark theme overrides */
+        [data-theme="dark"] {
+            --bg-chat-ai: rgba(92, 209, 139, 0.15);
+        }
+        [data-theme="dark"] .ai-message {
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .user-message {
+            color: #121212;
+        }
+
+        /* 12. Mobile responsive */
+        @media (max-width: 480px) {
+            .chatbot-widget {
+                width: calc(100% - 30px);
+                right: 15px;
+                bottom: 15px;
+                height: 400px;
+                max-height: calc(100vh - 30px);
+            }
+            .chatbot-launcher {
+                width: 48px;
+                height: 48px;
+                font-size: 1.3rem;
+                bottom: 15px;
+                right: 15px;
+            }
+            .chat-message {
+                font-size: 0.85rem;
+                padding: 8px 12px;
+            }
+        }
+
+        /* 13. Respect prefers-reduced-motion */
+        @media (prefers-reduced-motion: reduce) {
+            .chatbot-widget,
+            .chatbot-launcher,
+            .chatbot-close-btn,
+            .chat-send-btn {
+                transition: none;
+            }
+            .loading-indicator .dot {
+                animation: none;
+                opacity: 0.7;
+            }
+        }
+
+        /* Mobile Navigation Styles */
+        .nav-toggle {
+            display: block !important;
+            background: #667eea !important;
+            border: none !important;
+            color: white !important;
+            font-size: 24px !important;
+            cursor: pointer !important;
+            padding: 10px 15px !important;
+            border-radius: 8px !important;
+            z-index: 1001 !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+        }
+
+        .nav-toggle:hover {
+            background: #5568d3 !important;
+            transform: scale(1.05) !important;
+        }
+
+        @media (min-width: 769px) {
+            .nav-toggle {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: flex !important;
+                position: fixed !important;
+                top: 0 !important;
+                right: -100% !important;
+                width: 280px !important;
+                height: 100vh !important;
+                background: #ffffff !important;
+                flex-direction: column !important;
+                padding: 80px 20px 20px !important;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.1) !important;
+                transition: right 0.3s ease !important;
+                z-index: 1000 !important;
+                gap: 10px !important;
+                list-style: none !important;
+                margin: 0 !important;
+            }
+
+            .nav-menu.active {
+                right: 0 !important;
+            }
+
+            .nav-menu li {
+                width: 100% !important;
+                margin: 0 !important;
+            }
+
+            .nav-menu li a {
+                display: block !important;
+                padding: 15px 20px !important;
+                border-radius: 8px !important;
+                transition: background 0.2s !important;
+                color: #333 !important;
+                text-decoration: none !important;
+                font-weight: 600 !important;
+            }
+
+            .nav-menu li a:hover {
+                background: #f0f0f0 !important;
+            }
+
+            .nav-menu .btn {
+                width: 100% !important;
+                text-align: center !important;
+                margin-top: 10px !important;
+            }
+        }
+    </style>
 </head>
+
+{% raw %}
 <body>
+  <a href="#main-content" class="skip-link" style="position:absolute;top:-40px;left:0;background:#000;color:#fff;padding:8px 16px;z-index:10000;transition:top 0.3s;font-size:0.9rem;font-weight:600;border-radius:0 0 4px 0;text-decoration:none;" onfocus="this.style.top='0'" onblur="this.style.top='-40px'">Skip to main content</a>
+  {% endraw %}
+  <!-- Existing body content continues -->
+
     <!-- Professional Print Frame (Only visible in print) -->
     <div class="print-frame no-print"></div>
 
     <!-- Navigation -->
-    <nav class="navbar" id="navbar">
+
+
+    <nav class="navbar" id="navbar" role="navigation" aria-label="Main navigation">
         <div class="nav-container">
             <a href="/" class="nav-brand">
                 <i class="fas fa-seedling"></i>
-                <span>Agri-Vision</span>
+                <span data-i18n="brand_name">
+                    Agri-Vision
+                </span>
             </a>
-            <ul class="nav-menu">
-                <li><a href="/">Home</a></li>
-                <li><a href="/analyze">Analyze</a></li>
-                <li><a href="/demo">Demo</a></li>
-                <li><a href="/tutorials">Tutorials</a></li>
-                <li><a href="/stories">Stories</a></li>
+
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/" data-i18n="home">Home</a></li>
+                <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                    <i class="fas fa-bars"></i>
+                </button>
+                {% if current_user.is_authenticated %}
+                    <li><a href="/analyze">Analyze</a></li>
+                    <li><a href="/dashboard" > Dashboard</a></li>
+                    <li><a href="/stories">Stories</a></li>
+                    <li><a href="/history">History</a></li>
+                    {% if current_user.is_researcher() %}
+                        <li><a href="/model-admin" style="font-weight: bold; color: #667eea;">🤖 Admin</a></li>
+                    {% endif %}
+                    <li>
+                        <a href="/logout" style="color: #ef4444;">
+                            <i class="fas fa-sign-out-alt"></i>
+                        
+                            <span data-i18n="logout">
+                                Logout
+                            </span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li><a href="/demo" data-i18n="demo_nav">Demo</a></li>
+                    <li><a href="/tutorials" data-i18n="tutorials">Tutorials</a></li>
+                    <li><a href="/stories" data-i18n="stories">Stories</a></li>
+                    <li><a href="/login" class="btn btn-primary">Login</a></li>
+                    <li><a href="/register" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">Sign Up</a></li>
+                {% endif %}
+                <li>
+                    <select id="languageSwitcher" class="language-switcher" aria-label="Select language">
+                        <option value="en">EN</option>
+                        <option value="hi">हिं</option>
+                        <option value="mr">मराठी</option>
+                        <option value="ta">தமிழ்</option>
+                    </select>
+                </li>
                 <li>
                     <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark mode">
                         <i class="fas fa-moon"></i>
                     </button>
                 </li>
-                <li><a href="/analyze" class="btn btn-primary">Get Started</a></li>
             </ul>
         </div>
     </nav>
-
+<!-- =========================================================
+     Temporary Merge Conflict Text Cleanup
+========================================================= -->
     <!-- Main Content -->
-    <main>
+    <main id="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="main-content">
                     <div class="alert-container no-print">
                         {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">
+                                                <div class="alert alert-{{ category }}" role="alert" aria-live="assertive">
                                 <i class="fas {% if category == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
                                 <span>{{ message }}</span>
                             </div>
@@ -78,25 +460,52 @@
             <div class="hero-container">
                 <div class="hero-content">
                     <div class="hero-badge-wrapper">
-                        <span class="hero-badge">
-                            <span class="badge-dot"></span>
-                            AI-DRIVEN COTTON INTEGRATION
+                        <span class="hero-badge" data-i18n="hero_badge">
+                            <span class="badge-dot" aria-hidden="true"></span>
+                            <span data-i18n="hero.badge">AI-DRIVEN COTTON INTEGRATION</span>
                         </span>
                     </div>
-                    <h1>
-                        AI-Powered 
-                        <span>Cotton Crop Intelligence</span>
+
+                    <h1 class="typewriter" aria-label="AI-Powered Cotton Crop Intelligence">
+                        <span class="line1" data-i18n="hero.title1">AI-Powered</span>
+                        <span class="line2" data-i18n="hero.title2">Cotton Crop Intelligence</span>
                     </h1>
-                    <p>Analyze crop maturity, detect plant health issues, and optimize harvest timing using smart real-time deep learning analytics.</p>
-                    <div class="hero-cta">
-                        <a href="/analyze" class="btn btn-primary">
-                            <i class="fas fa-camera"></i> Analyze Image
+
+                    <p class="hero-desc" data-i18n="hero.desc">
+                        Analyze crop maturity, detect plant health issues, and optimize
+                        harvest timing using smart real-time deep learning analytics.
+                    </p>
+
+                    <div class="hero-cta" role="group" aria-label="Primary actions">
+                        <a href="/analyze" class="btn btn-primary hero-cta-primary">
+                            <i data-lucide="camera" aria-hidden="true"></i>
+                            <span data-i18n="hero.analyzeBtn">Analyze Image</span>
                         </a>
-                        <a href="/demo" class="btn btn-secondary">
-                            <i class="fas fa-play-circle"></i> View Demo
+
+                        <a id="hero-demo-link" href="/demo" class="btn btn-secondary hero-cta-secondary">
+                            <i data-lucide="play-circle" aria-hidden="true"></i>
+                            <span data-i18n="hero.demoBtn">View Demo</span>
                         </a>
                     </div>
+
+                    <div class="hero-trust" aria-label="Trust indicators">
+                        <div class="trust-strip">
+                            <span class="trust-item" aria-label="Detection accuracy 98 percent">
+                                <i data-lucide="shield-check" aria-hidden="true"></i>
+                                <strong>98%</strong> Detection Accuracy
+                            </span>
+                            <span class="trust-item" aria-label="Average scan time 2 seconds">
+                                <i data-lucide="bolt" aria-hidden="true"></i>
+                                <strong>2.4s</strong> Scan Time
+                            </span>
+                            <span class="trust-item" aria-label="Explainable AI with Grad-CAM">
+                                <i data-lucide="sparkles" aria-hidden="true"></i>
+                                <strong>Grad-CAM</strong> Explainability
+                            </span>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="hero-image">
                     <div class="scanner-container">
                         <!-- High Tech Corner Brackets -->
@@ -118,7 +527,7 @@
 
                         <!-- Interactive 3D WebGL Crop Scanner Container -->
                         <div class="image-wrapper canvas-3d-wrapper">
-                            <div id="canvas-3d-container" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4;"></div>
+                            <div id="canvas-3d-container" style="position: absolute; inset: 0; width: 100%; height: 80%; z-index: 4;"></div>
                             <div class="image-overlay" style="z-index: 5; pointer-events: none;"></div>
                         </div>
                     </div>
@@ -144,109 +553,225 @@
                     </div>
                 </div>
             </div>
+                
         </section>
 
         <section class="features-section reveal-stagger">
             <div class="section-header reveal reveal-fade-up">
-                <h2>Precision Farming Tools</h2>
-                <p>Equip yourself with state-of-the-art AI analysis specifically tuned for cotton crop cycles and common health stressors.</p>
+                <h2 data-i18n="tools_heading">
+                    Precision Farming Tools
+                </h2>
+                <p data-i18n="tools_desc">
+                    Equip yourself with state-of-the-art AI analysis
+                    specifically tuned for cotton crop cycles and
+                    common health stressors.
+                </p>
             </div>
             <div class="features-grid reveal-stagger">
                 <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <h3>Growth Detection</h3>
-                    <p>Identify critical cotton growth stages from vegetative to harvest-ready with precision.</p>
+                    <h3 data-i18n="growth_detection">
+                        Growth Detection
+                    </h3>
+
+                    <p data-i18n="growth_desc">
+                        Identify critical cotton growth stages...
+                    </p>
                 </div>
                 <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
                         <i class="fas fa-heartbeat"></i>
                     </div>
-                    <h3>Health Assessment</h3>
-                    <p>Early detection of diseases and pests like Pink Bollworm before they impact your yield.</p>
+                    <h3 data-i18n="health_assessment">Health Assessment</h3>
+                    <p data-i18n="health_desc">Early detection of diseases and pests like Pink Bollworm before they impact your yield.</p>
                 </div>
                 <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
                         <i class="fas fa-brain"></i>
                     </div>
-                    <h3>Smart Diagnostics</h3>
-                    <p>Leverage deep learning models trained on thousands of cotton-specific agricultural images.</p>
+                    <h3 data-i18n="smart_diagnostics">Smart Diagnostics</h3>
+                    <p data-i18n="diagnostics_desc">Leverage deep learning models trained on thousands of cotton-specific agricultural images.</p>
                 </div>
                 <div class="feature-card reveal reveal-fade-up">
                     <div class="feature-icon-wrapper">
                         <i class="fas fa-calendar-check"></i>
                     </div>
-                    <h3>Harvest Optimizer</h3>
-                    <p>Receive data-driven recommendations on the optimal window for cotton bursting and collection.</p>
+                    <h3 data-i18n="harvest_optimizer">Harvest Optimizer</h3>
+                    <p data-i18n="harvest_desc">Receive data-driven recommendations on the optimal window for cotton bursting and collection.</p>
                 </div>
             </div>
         </section>
         {% endblock %}
     </main>
+    <!-- =========================================================
+        Agri-Vision Footer Section
 
+        The footer provides quick-access navigation,
+        external platform references, social links,
+        branding information, and additional navigation
+        support for users browsing the platform.
+
+        Recent Improvements:
+        - Removed inactive Twitter/X social icon
+        - Improved footer cleanliness and consistency
+        - Reduced unnecessary external navigation clutter
+        - Enhanced footer maintainability
+        - Improved accessibility and usability
+
+        The footer maintains responsiveness and visual
+        consistency with the futuristic Agri-Vision UI.
+    ========================================================= -->
     <!-- Footer -->
-    <footer class="footer no-print reveal reveal-fade-in">
+    <footer class="footer no-print reveal reveal-fade-in" role="contentinfo" aria-label="Site footer">
         <div class="footer-container">
             <div class="footer-brand">
                 <h2 class="footer-title"><i class="fas fa-leaf"></i> Agri-Vision</h2>
-                <p class="footer-subtitle">Empowering cotton farmers with AI-driven insights.</p>
+                <p class="footer-subtitle" data-i18n="footer_subtitle">
+                    Empowering cotton farmers with AI-driven insights.                    
+                </p>
             </div>
+            <!-- =========================================================
+                Footer Navigation Links
+
+                Contains compact navigation shortcuts for
+                important platform pages including tutorials,
+                field comparison, support resources, and
+                AI-powered analysis features.
+
+                Navigation improvements help users access
+                important sections more efficiently while
+                improving overall platform usability.
+            ========================================================= -->
             <div class="footer-links-compact">
-                <a href="/">Home</a>
-                <a href="/analyze">Analyze</a>
-                <a href="/demo">Demo</a>
-                <a href="/tutorials">Tutorials</a>
-                <a href="#">Support</a>
+                <a href="/" data-i18n="home">Home</a>
+                <a href="/analyze" data-i18n="analyze">Analyze</a>
+                <a href="/comparison" data-i18n="comparison">Field Comparison</a>
+                <a href="{{ url_for('dashboard') }}" data-i18n="dashboard">Dashboard</a>
+                <a href="/demo" data-i18n="demo_nav">Demo</a>
+                <a href="/tutorials" data-i18n="tutorials">Tutorials</a>
+                <a href="{{ url_for('support') }}" data-i18n="support">Support</a>
             </div>
         </div>
+        <!-- =========================================================
+            Footer Bottom Information Section
+
+            Displays copyright information,
+            branding details, social media references,
+            and additional platform identity elements.
+
+            This section improves professional appearance
+            and strengthens overall UI completeness.
+        ========================================================= -->
         <div class="footer-bottom">
             <p>&copy; <span id="year"></span> Agri-Vision. All rights reserved.</p>
             <p>
                 Smart Cotton Crop Analysis System
             </p>
+
+            <!-- =========================================================
+                Footer Social Media Links Section
+
+                This section contains external social media
+                platform links associated with the Agri-Vision
+                project and contributor profiles.
+
+                Improvements Made:
+                - Removed inactive Twitter/X social icon
+                - Reduced unnecessary footer clutter
+                - Improved footer visual consistency
+                - Kept only actively maintained platforms
+                - Enhanced navigation cleanliness
+
+                The footer now provides a cleaner and more
+                professional appearance while avoiding
+                non-functional or unused external links.
+            ========================================================= -->
+
+
             <div class="footer-social">
-                <a href="#"><i class="fab fa-twitter"></i></a>
-                <a href="https://www.linkedin.com/in/neerugangarh/" target="_blank"><i class="fab fa-linkedin"></i></a>
-                <a href="https://github.com/neeru24/Agri-Vision" target="_blank"><i class="fab fa-github"></i></a>
+                <a href="https://www.linkedin.com/in/neerugangarh/" target="_blank" aria-label="LinkedIn profile (opens in new tab)"><i class="fab fa-linkedin"></i></a>
+                <a href="https://github.com/neeru24/Agri-Vision" target="_blank" aria-label="GitHub repository (opens in new tab)"><i class="fab fa-github"></i></a>
             </div>
         </div>
     </footer>
+    <!-- =========================================================
+        Frontend Interactive Utility Scripts
 
+        Handles:
+        - Theme toggle interactions
+        - Dynamic UI behavior
+        - Frontend accessibility support
+        - Interactive visual enhancements
+
+        Organized separately for cleaner maintainability.
+    ========================================================= -->
     <script>
         document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
+    <script>
 
-        // Theme Toggle Logic
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const themeIcon = themeToggleBtn ? themeToggleBtn.querySelector('i') : null;
-
-        function updateThemeIcon() {
-            if (!themeIcon) return;
-            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-            if (isDark) {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
+    document.addEventListener("DOMContentLoaded", () => {
+        const themeToggleBtn =
+            document.getElementById("theme-toggle");
+    
+        function updateThemeIcon(theme) {
+        
+            const icon =
+                themeToggleBtn.querySelector("i");
+        
+            if (theme === "dark") {
+            
+                icon.classList.remove("fa-moon");
+                icon.classList.add("fa-sun");
+            
             } else {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
+            
+                icon.classList.remove("fa-sun");
+                icon.classList.add("fa-moon");
             }
         }
-
-        if (themeToggleBtn) {
-            updateThemeIcon();
-            themeToggleBtn.addEventListener('click', () => {
-                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-                
-                if (!isDark) {
-                    document.documentElement.setAttribute('data-theme', 'dark');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    document.documentElement.removeAttribute('data-theme');
-                    localStorage.setItem('theme', 'light');
-                }
-                updateThemeIcon();
-            });
-        }
+    
+        // Load saved theme
+        const savedTheme =
+            localStorage.getItem("theme") || "light";
+    
+        document.documentElement.setAttribute(
+            "data-theme",
+            savedTheme
+        );
+    
+        updateThemeIcon(savedTheme);
+    
+        // Toggle theme
+        themeToggleBtn.addEventListener("click", () => {
+        
+            const currentTheme =
+                document.documentElement.getAttribute(
+                    "data-theme"
+                );
+        
+            const newTheme =
+                currentTheme === "dark"
+                ? "light"
+                : "dark";
+        
+            document.documentElement.setAttribute(
+                "data-theme",
+                newTheme
+            );
+        
+            localStorage.setItem(
+                "theme",
+                newTheme
+            );
+        
+            updateThemeIcon(newTheme);
+        });
+    
+    });
+    
     </script>
     <script>
         // Navbar scroll effect
@@ -722,5 +1247,157 @@
             setTimeout(handleResize, 200);
         })();
     </script>
+    <script>
+        if (!('ontouchstart' in window) && window.matchMedia('(pointer: fine)').matches) {
+            document.addEventListener("DOMContentLoaded", () => {
+                const container = document.querySelector(".trail-container");
+                const dots = [];
+                const totalDots = 15;
+                let mouseX = 0;
+                let mouseY = 0;
+
+                for (let i = 0; i < totalDots; i++) {
+                    const dot = document.createElement("div");
+                    dot.classList.add("trail-dot");
+                    container.appendChild(dot);
+                    dots.push({ el: dot, x: 0, y: 0 });
+                }
+
+                document.addEventListener("mousemove", (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                });
+
+                function animate() {
+                    let x = mouseX;
+                    let y = mouseY;
+                    dots.forEach((dot, index) => {
+                        dot.x += (x - dot.x) * 0.35;
+                        dot.y += (y - dot.y) * 0.35;
+                        dot.el.style.left = dot.x + "px";
+                        dot.el.style.top = dot.y + "px";
+                        const scale = (totalDots - index) / totalDots;
+                        dot.el.style.transform = `translate(-50%, -50%) scale(${scale})`;
+                        dot.el.style.opacity = scale;
+                        x = dot.x;
+                        y = dot.y;
+                    });
+                    requestAnimationFrame(animate);
+                }
+                animate();
+            });
+        }
+    </script>
+        <div class="trail-container"></div>
+
+        <!-- Chatbot Launcher Bubble -->
+        <button id="chatbot-launcher" class="chatbot-launcher no-print"
+                title="Chat with Agri-Vision AI"
+                aria-label="Open AI chat assistant"
+                aria-expanded="false">
+            <i class="fas fa-comment-alt"></i>
+        </button>
+
+        <!-- Chatbot Widget (starts collapsed) -->
+        <div id="chatbot-widget" class="chatbot-widget collapsed no-print" role="dialog" aria-label="Agri-Vision AI Chatbot">
+            <div class="chatbot-header">
+                <span><i class="fas fa-comments"></i> Agri-Vision AI</span>
+                <button id="chatbot-close-btn" class="chatbot-close-btn" aria-label="Close chat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chatbot-body">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="chat-message ai-message" data-i18n="chat_welcome">
+                    Hello! I'm your Agri-Vision AI assistant.
+                    Ask me anything about cotton crops,
+                    farming practices, pests, or disease prevention.
+                    </div>                
+                </div>
+                <form id="chat-form" class="chat-input-container" autocomplete="off">
+                    <input type="text" id="chat-input" data-i18n-placeholder="chat_placeholder" placeholder="Type a message..." autocomplete="off" aria-label="Chat message">
+                    <button type="submit" id="chat-send-btn" class="chat-send-btn" aria-label="Send message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Chatbot Controller -->
+        <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+        <button id="scrollTopBtn" aria-label="Scroll to top">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+        <script>
+    // Mobile Navigation Toggle
+    const navToggle = document.getElementById('nav-toggle');
+    const navMenu = document.getElementById('nav-menu');
+
+    console.log('Nav toggle:', navToggle);
+    console.log('Nav menu:', navMenu);
+
+    if (navToggle && navMenu) {
+        navToggle.addEventListener('click', () => {
+            console.log('Toggle clicked, current classes:', navMenu.classList);
+            navMenu.classList.toggle('active');
+            console.log('After toggle, classes:', navMenu.classList);
+            const icon = navToggle.querySelector('i');
+            if (navMenu.classList.contains('active')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+
+        // Close menu when clicking on a link
+        navMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+                const icon = navToggle.querySelector('i');
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            });
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
+                navMenu.classList.remove('active');
+                const icon = navToggle.querySelector('i');
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+    } else {
+        console.error('Navigation elements not found!');
+    }
+
+    const scrollBtn =
+        document.getElementById("scrollTopBtn");
+
+    window.addEventListener("scroll", () => {
+
+        if(window.scrollY > 300){
+
+            scrollBtn.style.display = "block";
+
+        } else {
+
+            scrollBtn.style.display = "none";
+        }
+    });
+
+    scrollBtn.addEventListener("click", () => {
+
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+    });
+</script>
+<script src="{{ url_for('static',
+filename='js/language.js') }}"></script>
 </body>
 </html>
