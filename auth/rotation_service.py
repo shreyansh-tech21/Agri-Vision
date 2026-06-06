@@ -94,7 +94,22 @@ def rotate_refresh_token(
                 token_row.is_compromised = True
             db.session.add(family)
             db.session.add(token_row)
+
+            # Best-effort: mark device sessions linked to this family as inactive/compromised.
+            # Avoid hard dependency during initial rollout.
+            try:
+                from models import DeviceSession  # type: ignore
+
+                (  # noqa: E701
+                    db.session.query(DeviceSession)
+                    .filter(DeviceSession.refresh_token_family_id == family_id, DeviceSession.user_id == user_id)
+                    .update({"is_active": False, "revoked_at": now}, synchronize_session=False)
+                )
+            except Exception:
+                pass
+
             raise RefreshRotationError("reuse", "Refresh token reuse detected")
+
 
         # If the token is active, rotate:
         new_family_id = family_id  # same family chain

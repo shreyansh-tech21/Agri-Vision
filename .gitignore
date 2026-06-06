@@ -138,6 +138,9 @@ celerybeat.pid
 .env
 .envrc
 .venv
+
+# Ignore generated model artifacts
+models/*.keras
 env/
 venv/
 ENV/

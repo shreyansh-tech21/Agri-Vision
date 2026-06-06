@@ -3,7 +3,7 @@ Agri-Vision Cotton Crop Training Script
 Improved Multi-Task Version
 """
 
-import os
+import os    
 import cv2
 import random
 import numpy as np
@@ -178,15 +178,11 @@ class CottonMultiTaskModel:
         # Data Augmentation
         # ----------------------------------------------------
 
-        augmentation = keras.Sequential([
-            layers.RandomFlip("horizontal"),
-            layers.RandomFlip("vertical"),
-            layers.RandomRotation(0.1),
-            layers.RandomZoom(0.1),
-            layers.RandomContrast(0.1)
-        ])
-
-        x = augmentation(inputs)
+        x = layers.RandomFlip("horizontal")(inputs)
+        x = layers.RandomFlip("vertical")(x)
+        x = layers.RandomRotation(0.1)(x)
+        x = layers.RandomZoom(0.1)(x)
+        x = layers.RandomContrast(0.1)(x)
 
         # ----------------------------------------------------
         # CNN Backbone

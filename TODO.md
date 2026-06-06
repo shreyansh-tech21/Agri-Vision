@@ -1,16 +1,29 @@
-# TODO - Refresh Token Rotation (Enterprise, Replay Detection)
+# TODO - Device-Based Session Management (Agri-Vision)
 
-## Plan checkpoints
-- [ ] Step 1: Add DB models for refresh token families + refresh tokens (hashed-only storage, indexes)
+## Phase 1 - Repository Discovery
+- [x] Identify existing auth: Flask-Login and JWT refresh rotation modules.
+- [x] Confirm JWT rotation uses refresh token families with replay detection.
+- [ ] Confirm/locate existing JWT HTTP endpoints (none found in app.py).
 
+## Phase 2 - Session Management Implementation
+- [ ] Add `DeviceSession` model + indexes in `models.py`.
+- [ ] Add UA/OS/browser/device detection module.
+- [ ] Add `services/session_service.py` with create/list/touch/revoke.
+- [ ] Add JWT middleware/decorator for access tokens in `app.py`.
+- [ ] Add minimal JWT endpoints (`/api/login`, `/api/refresh`) needed for JWT auth.
+- [ ] Add session endpoints:
+  - [ ] GET `/sessions`
+  - [ ] DELETE `/sessions/:id`
+  - [ ] DELETE `/sessions/others`
+- [ ] Integrate replay-detection compromise with session rows (`auth/rotation_service.py`).
 
-- [ ] Step 2: Add JWT utilities (access/refresh signing, claims, TTL)
+## Phase 3 - Testing & QA
+- [ ] Update/extend refresh rotation tests for session compromise.
+- [ ] Add unit tests for session listing/revocation/ownership.
+- [ ] Add integration tests: login → refresh → list → revoke.
 
-- [ ] Step 3: Add refresh rotation service with one-time-use enforcement + replay detection + family revocation
-- [ ] Step 4: Add audit logging helper (structured logs; never log raw tokens)
-- [ ] Step 5: Add API endpoints: login (JWT issuance), refresh, logout
-- [ ] Step 6: Add concurrency-safe rotation logic (transaction / conditional update)
-- [ ] Step 7: Add tests: unit + integration + concurrency + reuse detection + family revocation
-- [ ] Step 8: Update docs/security notes
-- [ ] Step 9: Run full test suite + ensure CI compatibility
+## Phase 4 - CI/CD & Vercel
+- [ ] Run `pytest` (all tests + coverage).
+- [ ] Run `python app.py` smoke test.
+- [ ] Verify endpoints work in Vercel/serverless-compatible mode.
 

@@ -8,7 +8,7 @@
 {% set growth_boxes = growth.boxes|default([]) %}
 {% set disease_info = results.disease_info|default({}) %}
 
-<section class="main-content">
+<section class="main-content" aria-label="Crop analysis results">
   <div class="container" style="padding-bottom: 4rem">
     <div class="glass-card reveal reveal-fade-up results-card">
       
@@ -21,9 +21,8 @@
         </p>
       </div>
 
-      <!-- Growth Stage Detection -->
-      <div class="result-card">
-        <h2 class="results-section-title">
+      <section aria-label="Growth Stage Detection" class="result-card" role="region" aria-live="polite">
+        <h2 class="results-section-title" aria-live="polite">
           <i class="fas fa-seedling"></i> Growth Stage Detection (YOLOv8)
         </h2>
         {% if growth.main_class %}
@@ -56,10 +55,10 @@
         {% else %}
         <p style="margin-bottom: 2rem; color: var(--text-muted);">No cotton growth stage detected.</p>
         {% endif %}
-      </div>
+      </section>
 
       {% if weather %}
-      <div class="weather-card" style="
+      <section class="weather-card" role="region" aria-label="Current weather conditions" style="
           margin: 2rem 0;
           padding: 1.5rem;
           background: linear-gradient(135deg, #667eea15, #764ba215);
@@ -100,12 +99,12 @@
           </div>
           {% endif %}
         </div>
-      </div>
+      </section>
       {% endif %}
 
       <!-- Disease Forecast & Risk Analysis -->
       {% if forecast %}
-      <div class="forecast-card" style="
+      <section class="forecast-card" role="region" aria-label="Disease forecast and risk analysis" style="
           margin: 2rem 0;
           padding: 1.5rem;
           background: linear-gradient(135deg, #f093fb15, #f5576c15);
@@ -156,15 +155,18 @@
           </ul>
         </div>
         {% endif %}
-      </div>
+      </section>
       {% endif %}
 
       <!-- Analyzed Image + Bounding Boxes -->
       {% if image_b64 %}
       <div class="result-img-container" style="position: relative; margin-bottom: 2rem">
         <div id="original-image-view" style="position: relative">
-          <img id="result-img" alt="Analyzed Crop Image" src="data:image/jpeg;base64,{{ image_b64 }}" class="result-img" />
-          <svg id="bbox-svg" class="result-svg" style="position: absolute; top: 0; left: 0" width="410" height="{{ (img_shape.height|default(1) / img_shape.width|default(1) * 410)|int }}"></svg>
+          <img id="result-img" alt="Analyzed Crop Image showing uploaded cotton crop" src="data:image/jpeg;base64,{{ image_b64 }}" class="result-img" />
+          <svg id="bbox-svg" class="result-svg" role="img" aria-label="Bounding box annotations showing detected growth stages on the crop image" style="position: absolute; top: 0; left: 0" width="410" height="{{ (img_shape.height|default(1) / img_shape.width|default(1) * 410)|int }}">
+            <title>Growth stage detection bounding boxes</title>
+            <desc>Visual annotations drawn by YOLOv8 object detection model highlighting detected cotton growth stages in the image. {% for box in growth_boxes %}{{ box.class_name }} detected at confidence {{ (box.confidence * 100)|round(1) }}%. {% endfor %}</desc>
+          </svg>
         </div>
         {% if grad_cam_image_b64 %}
         <div id="grad-cam-view" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none;">
@@ -178,7 +180,7 @@
       {% endif %}
 
       {% if results.warnings %}
-      <div class="result-card" style="border-left: 4px solid #f59e0b">
+      <div class="result-card" style="border-left: 4px solid #f59e0b" role="alert" aria-label="Degraded mode notice">
         <h2 class="results-section-title"><i class="fas fa-triangle-exclamation"></i> Degraded Mode Notice</h2>
         <ul class="results-list">
           {% for warning in results.warnings %}
@@ -188,7 +190,7 @@
       </div>
       {% endif %}
 
-      <div class="result-card">
+      <div class="result-card" role="region" aria-label="Growth stage and disease classification results">
         <h2 class="results-section-title" data-i18n="res_growth_title">
           <i class="fas fa-seedling"></i> Growth Stage Detection (YOLOv8)
         </h2>
@@ -268,15 +270,15 @@
               {% if disease.health_score %}
                 {% if disease.health_score < 40 %}
                   <span class="badge" style="background:#dc3545;color:white;padding:0.3rem 0.7rem;border-radius:20px;margin-left:0.5rem;">
-                    Severe
+                    Severe <span class="sr-only">(Health score below 40%)</span>
                   </span>
                 {% elif disease.health_score < 75 %}
                   <span class="badge" style="background:#ffc107;color:black;padding:0.3rem 0.7rem;border-radius:20px;margin-left:0.5rem;">
-                    Moderate
+                    Moderate <span class="sr-only">(Health score between 40% and 75%)</span>
                   </span>
                 {% else %}
                   <span class="badge" style="background:#28a745;color:white;padding:0.3rem 0.7rem;border-radius:20px;margin-left:0.5rem;">
-                    Healthy
+                    Healthy <span class="sr-only">(Health score above 75%)</span>
                   </span>
                 {% endif %}
               {% endif %}
@@ -311,7 +313,8 @@
           </div>
           {% endif %}
           <li><b>Health Score:</b> {{ disease.health_score|default(0)|round(2) }}%
-            <div class="health-bar" style="margin-top: 0.4rem">
+            <span class="sr-only">{% if disease.health_score|default(0)|float < 40 %}Severity level: Critical{% elif disease.health_score|default(0)|float < 75 %}Severity level: Moderate{% else %}Severity level: Good{% endif %}</span>
+            <div class="health-bar" role="progressbar" aria-valuenow="{{ disease.health_score|default(0)|round(0) }}" aria-valuemin="0" aria-valuemax="100" aria-label="Crop health score: {{ disease.health_score|default(0)|round(2) }} percent" style="margin-top: 0.4rem">
               <div class="health-fill" style="width: {{ disease.health_score|default(0)|round(0) }}%;"></div>
             </div>
           </li>
@@ -468,7 +471,7 @@
 
       <!-- Yield Estimate -->
       {% if yield_estimate %}
-      <div class="result-card yield-calculator-section" style="background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--card-border); transition: all 0.3s ease;">
+      <section class="result-card yield-calculator-section" role="region" aria-label="Interactive yield calculator" style="background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)); border: 1px solid var(--card-border); transition: all 0.3s ease;">
         <h2 class="results-section-title" data-i18n="res_yield_title">
           <i class="fas fa-chart-line"></i> Interactive Yield Calculator
         </h2>
@@ -563,11 +566,11 @@
             });
           })();
         </script>
-      </div>
+      </section>
       {% endif %}
 
 
-      <div class="result-card">
+      <div class="result-card" role="region" aria-label="Recommendations">
         <h2 class="results-section-title" data-i18n="res_recs">
           <i class="fas fa-lightbulb"></i> Recommendations
         </h2>
@@ -581,7 +584,7 @@
       <!-- Context-Aware Treatment & Management Guide -->
       {% set tr = treatment_recommendations|default({}) %}
       {% if tr and tr.treatment is defined %}
-      <div class="result-card" id="treatment-management-guide">
+      <div class="result-card" id="treatment-management-guide" role="region" aria-label="Treatment and management guide">
         <h2 class="results-section-title">
           <i class="fas fa-prescription-bottle-medical"></i> Treatment &amp; Management Guide
         </h2>
@@ -716,7 +719,7 @@
 
       {% if heatmap_only_b64 %}
       <!-- EXPLAINABLE AI (GRAD-CAM) INTERACTIVE DASHBOARD -->
-      <div id="explainability-dashboard" class="result-card reveal fade-in" style="margin-top: 3rem; border-top: 1px solid var(--card-border); padding-top: 2.5rem; scroll-margin-top: 2rem;">
+      <div id="explainability-dashboard" class="result-card reveal fade-in" role="region" aria-label="Explainable AI Grad-CAM diagnostic" style="margin-top: 3rem; border-top: 1px solid var(--card-border); padding-top: 2.5rem; scroll-margin-top: 2rem;">
         <div style="border-bottom: 1px solid var(--card-border); padding-bottom: 1rem; margin-bottom: 2rem;">
           <h2 class="results-section-title" style="margin: 0; font-size: 1.5rem;">
             <i class="fas fa-brain" style="color: var(--ai-blue, #3b82f6);"></i> Explainable AI (Grad-CAM Diagnostic)
@@ -741,11 +744,42 @@
         <div class="explainability-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; margin-bottom: 2.5rem;">
           <!-- Dual Interactive Viewer -->
           <div class="explainability-viewer-card" style="background: rgba(0,0,0,0.01); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--card-border); text-align: center;">
-            <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0; margin-bottom: 1rem;"><i class="fas fa-sliders-h" style="color: var(--ai-blue, #3b82f6);"></i> Interactive Blended Heatmap</h3>
+            <h3 style="font-size: 1.1rem; color: var(--text-main); margin-top: 0; margin-bottom: 1.2rem;"><i class="fas fa-sliders-h" style="color: var(--ai-blue, #3b82f6);"></i> Interactive Explainability Controls</h3>
+            
+            <!-- Controls panel -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+              <div style="display: flex; flex-direction: column; gap: 0.4rem; text-align: left;">
+                <label for="gradcam-target-class" style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Target Disease Class:</label>
+                <select id="gradcam-target-class" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--card-border); background-color: white; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; outline: none;">
+                  {% for idx in range(disease_classes|length) %}
+                    <option value="{{ idx }}" {% if disease_classes[idx] == results.disease.predicted_class %}selected{% endif %}>{{ disease_classes[idx] }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.4rem; text-align: left;">
+                <label for="gradcam-blend-mode" style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Overlay Blend Mode:</label>
+                <select id="gradcam-blend-mode" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--card-border); background-color: white; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; outline: none;">
+                  <option value="normal" selected>Blended Overlay (Standard)</option>
+                  <option value="multiply">Multiply (Texture Integrated)</option>
+                  <option value="screen">Screen (Neon Highlights)</option>
+                  <option value="overlay">Overlay (Balanced Contrast)</option>
+                  <option value="color-dodge">Color Dodge (Extreme Focus)</option>
+                  <option value="pure-heatmap">Pure Heatmap Only</option>
+                  <option value="pure-leaf">Original Leaf Only</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Viewer Container with Spinner Overlay -->
             <div class="blended-viewer-container" style="position: relative; width: 100%; max-width: 420px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border: 2px solid var(--card-border);">
               <img id="explain-base-img" src="data:image/jpeg;base64,{{ image_b64 }}" alt="Base Crop Image" style="display: block; width: 100%; height: auto;" />
               <img id="explain-heatmap-img" src="data:image/jpeg;base64,{{ heatmap_only_b64 }}" alt="Pure Heatmap" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.5; mix-blend-mode: normal; pointer-events: none; transition: opacity 0.05s ease;" />
+              <div id="gradcam-spinner" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 10;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2.2rem; color: var(--ai-blue, #3b82f6); margin-bottom: 0.6rem;"></i>
+                <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">Computing Heatmap...</span>
+              </div>
             </div>
+            
             <div class="opacity-control-wrap" style="margin-top: 1.5rem; padding: 0 1rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                 <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Original Image</span>
@@ -887,9 +921,85 @@
     var heatmapImg = document.getElementById('explain-heatmap-img');
     var opacityBadge = document.getElementById('opacity-badge');
 
+    // Dynamic blend mode and target class selectors
+    const uniqueFilename = '{{ unique_filename }}';
+    var targetClassSelector = document.getElementById('gradcam-target-class');
+    var blendModeSelector = document.getElementById('gradcam-blend-mode');
+    var spinner = document.getElementById('gradcam-spinner');
+    var baseImg = document.getElementById('explain-base-img');
+
+    // Dynamic blend mode controller
+    if (blendModeSelector && heatmapImg && baseImg) {
+      blendModeSelector.addEventListener('change', function () {
+        const mode = blendModeSelector.value;
+        if (mode === 'pure-heatmap') {
+          baseImg.style.visibility = 'hidden';
+          heatmapImg.style.visibility = 'visible';
+          heatmapImg.style.opacity = '1.0';
+          heatmapImg.style.mixBlendMode = 'normal';
+          if (opacitySlider) opacitySlider.disabled = true;
+        } else if (mode === 'pure-leaf') {
+          baseImg.style.visibility = 'visible';
+          heatmapImg.style.visibility = 'hidden';
+          if (opacitySlider) opacitySlider.disabled = true;
+        } else {
+          baseImg.style.visibility = 'visible';
+          heatmapImg.style.visibility = 'visible';
+          heatmapImg.style.mixBlendMode = mode;
+          if (opacitySlider) {
+            opacitySlider.disabled = false;
+            heatmapImg.style.opacity = opacitySlider.value / 100;
+          }
+        }
+      });
+    }
+
+    // Dynamic alternative class Grad-CAM generator
+    if (targetClassSelector && uniqueFilename && spinner && heatmapImg) {
+      targetClassSelector.addEventListener('change', async function () {
+        const classIdx = targetClassSelector.value;
+        spinner.style.opacity = '1';
+        
+        try {
+          const response = await fetch('/api/explain/target', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              image_path: uniqueFilename,
+              target_class_idx: parseInt(classIdx, 10)
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error(`API Error: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          if (data.status === 'success') {
+            // Swap in the new pure heatmap base64 source!
+            heatmapImg.src = 'data:image/jpeg;base64,' + data.heatmap_only_b64;
+            console.log('Succeeded generating Grad-CAM for:', data.target_class);
+          } else {
+            throw new Error(data.error || 'Failed to update heatmap');
+          }
+        } catch (error) {
+          console.error('Error computing Grad-CAM:', error);
+          alert('Could not compute Grad-CAM for this class: ' + error.message);
+        } finally {
+          spinner.style.opacity = '0';
+        }
+      });
+    }
+
     if (opacitySlider && heatmapImg && opacityBadge) {
       opacitySlider.addEventListener('input', function () {
         var opacityValue = opacitySlider.value;
+        // Don't override opacity if in pure-heatmap/pure-leaf modes
+        if (blendModeSelector && (blendModeSelector.value === 'pure-heatmap' || blendModeSelector.value === 'pure-leaf')) {
+          return;
+        }
         heatmapImg.style.opacity = opacityValue / 100;
         opacityBadge.innerHTML = opacityValue + '% Heatmap';
       });
@@ -1259,9 +1369,22 @@ function readInsights() {
     alert("Speech synthesis is not supported in this browser.");
     return;
   }
-  window.speechSynthesis.cancel();
-  var utterance = new SpeechSynthesisUtterance("Here are your crop analysis insights. " + insights.join(" "));
-  window.speechSynthesis.speak(utterance);
+  if (window.speechSynthesis.speaking) {
+
+    if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+    } else {
+        window.speechSynthesis.pause();
+    }
+
+    return;
+}
+
+var utterance = new SpeechSynthesisUtterance(
+    "Here are your crop analysis insights. " + insights.join(" ")
+);
+
+window.speechSynthesis.speak(utterance);
 }
 
 function exportExplainabilityReport() {
@@ -1280,5 +1403,4 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.setItem("cropHistory", JSON.stringify(cropHistory));
 });
 </script>
-
 {% endblock %}

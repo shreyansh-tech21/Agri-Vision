@@ -123,6 +123,34 @@
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
         
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #333;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+        
+        .btn-google:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+        
+        .btn-google img {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+        
         .divider {
             text-align: center;
             margin: 25px 0;
@@ -213,10 +241,32 @@
                 <input type="email" id="email" name="email" placeholder="Enter your email" required>
             </div>
             
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-            </div>
+           <div class="form-group">
+    <label for="password">Password</label>
+
+    <div style="position: relative;">
+        <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+        >
+
+        <i
+            id="togglePassword"
+            class="fas fa-eye"
+            style="
+                position:absolute;
+                right:15px;
+                top:50%;
+                transform:translateY(-50%);
+                cursor:pointer;
+                color:#666;
+            "
+        ></i>
+    </div>
+</div>
             
             <div class="remember-forgot">
                 <label>
@@ -233,9 +283,32 @@
         
         <div class="divider">or</div>
         
+        {% if google_oauth_enabled %}
+        <a href="{{ url_for('auth_google') }}" class="btn-google" style="margin-bottom: 20px;">
+            <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google logo">
+            Sign in with Google
+        </a>
+        {% endif %}
+        
         <div class="signup-link">
             Don't have an account? <a href="{{ url_for('register') }}">Sign up</a>
         </div>
     </div>
+    <script>
+        const togglePassword = document.getElementById("togglePassword");
+        const password = document.getElementById("password");
+            
+        togglePassword.addEventListener("click", function () {
+            const type =
+                password.getAttribute("type") === "password"
+                    ? "text"
+                    : "password";
+        
+            password.setAttribute("type", type);
+        
+            this.classList.toggle("fa-eye");
+            this.classList.toggle("fa-eye-slash");
+        });
+</script>
 </body>
 </html>

@@ -12,21 +12,97 @@ db = SQLAlchemy()
 ROLE_FARMER = "farmer"
 ROLE_RESEARCHER = "researcher"
 ROLE_ADMIN = "admin"
+ROLE_MODERATOR = "moderator"
+
+
+
+class Role(db.Model):
+    """Normalized RBAC Role table."""
+
+    __tablename__ = "roles"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    slug = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    description = db.Column(db.String(500), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+    deleted_at = db.Column(db.DateTime, nullable=True)
+
+
+class Permission(db.Model):
+    """Normalized RBAC Permission table."""
+
+    __tablename__ = "permissions"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(150), unique=True, nullable=False)
+    slug = db.Column(db.String(190), unique=True, nullable=False, index=True)
+    description = db.Column(db.String(500), nullable=True)
+
+    # Resource/action model (useful for future filtering and UI)
+    resource = db.Column(db.String(120), nullable=True, index=True)
+    action = db.Column(db.String(120), nullable=True, index=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(
+        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+
+
+class RolePermission(db.Model):
+    """Role to Permission mapping."""
+
+    __tablename__ = "role_permissions"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=False, index=True)
+    permission_id = db.Column(
+        db.Integer, db.ForeignKey("permissions.id"), nullable=False, index=True
+    )
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint("role_id", "permission_id", name="uq_role_permission"),
+    )
+
+
+class UserRole(db.Model):
+    """User to Role mapping (supports multiple roles)."""
+
+    __tablename__ = "user_roles"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False, index=True)
+    role_id = db.Column(db.Integer, db.ForeignKey("roles.id"), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "role_id", name="uq_user_role"),
+    )
 
 
 class User(UserMixin, db.Model):
+
     """User model for authentication"""
 
     __tablename__ = "users"
 
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(255), nullable=False)
+    password_hash = db.Column(db.String(255), nullable=True)  # Nullable for OAuth-only accounts
     full_name = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default=ROLE_FARMER)  # farmer, researcher, admin
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
+
+    # OAuth fields (populated when user signs in via Google)
+    oauth_provider = db.Column(db.String(32), nullable=True)   # e.g. "google"
+    oauth_id = db.Column(db.String(255), nullable=True, index=True)  # Provider's unique user ID
+    profile_picture = db.Column(db.String(500), nullable=True)  # Profile photo URL from provider
 
     # Relationships
     analyses = db.relationship(
@@ -40,18 +116,38 @@ class User(UserMixin, db.Model):
         self.password_hash = hashpw(password.encode("utf-8"), gensalt()).decode("utf-8")
 
     def check_password(self, password):
-        """Check if password matches hash"""
-        from bcrypt import checkpw, hashpw
+        """Check if password matches hash. Returns False for OAuth-only accounts."""
+        if not self.password_hash:
+            return False
+        from bcrypt import checkpw
 
         return checkpw(password.encode("utf-8"), self.password_hash.encode("utf-8"))
 
     def is_admin(self):
-        """Check if user is admin"""
-        return self.role == ROLE_ADMIN
+        """Check if user is admin.
+
+        If RBAC mappings exist, prefer them; otherwise fall back to legacy
+        single-role field.
+        """
+        try:
+            # Prefer RBAC mappings if present.
+            return any(ur.role_id is not None and Role.query.filter(Role.id == ur.role_id, Role.slug == ROLE_ADMIN).count() > 0 for ur in self.user_roles)  # type: ignore[attr-defined]
+        except Exception:
+            return self.role == ROLE_ADMIN
 
     def is_researcher(self):
-        """Check if user is researcher or admin"""
-        return self.role in [ROLE_RESEARCHER, ROLE_ADMIN]
+        """Check if user is researcher or admin.
+
+        If RBAC mappings exist, prefer them; otherwise fall back to legacy
+        single-role field.
+        """
+        try:
+            # Prefer RBAC mappings if present.
+            return any(ur.role_id is not None and Role.query.filter(Role.id == ur.role_id, Role.slug.in_([ROLE_RESEARCHER, ROLE_ADMIN])).count() > 0 for ur in self.user_roles)  # type: ignore[attr-defined]
+        except Exception:
+            return self.role in [ROLE_RESEARCHER, ROLE_ADMIN]
+
+
 
     def to_dict(self):
         return {
@@ -437,8 +533,52 @@ class RefreshTokenFamily(db.Model):
     )
 
 
+class DeviceSession(db.Model):
+    """Device-based session tracking linked to refresh token families."""
+
+    __tablename__ = "device_sessions"
+
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False, index=True)
+
+    # JWT access token claims
+    session_id = db.Column(db.String(64), nullable=False, index=True)
+
+    # Refresh token family linkage (revocation/compromise fan-out)
+    refresh_token_family_id = db.Column(
+        db.String(36),
+        db.ForeignKey("refresh_token_families.id"),
+        nullable=False,
+        index=True,
+    )
+
+    # Device metadata
+    device_name = db.Column(db.String(120), nullable=True)
+    browser_name = db.Column(db.String(60), nullable=True)
+    operating_system = db.Column(db.String(60), nullable=True)
+    device_type = db.Column(db.String(30), nullable=True)  # desktop, mobile, tablet
+    user_agent = db.Column(db.Text, nullable=True)
+
+    # Network / location (privacy-conscious, best-effort)
+    ip_address = db.Column(db.String(64), nullable=True)
+    country = db.Column(db.String(80), nullable=True)
+    city = db.Column(db.String(120), nullable=True)
+
+    # State
+    is_current = db.Column(db.Boolean, default=False, nullable=False, index=True)
+    is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    last_activity_at = db.Column(db.DateTime, nullable=True, index=True)
+    revoked_at = db.Column(db.DateTime, nullable=True)
+    expires_at = db.Column(db.DateTime, nullable=True, index=True)
+
+
 class RefreshToken(db.Model):
     """A single refresh token (hashed) with one-time use enforcement."""
+
 
     __tablename__ = "refresh_tokens"
 
