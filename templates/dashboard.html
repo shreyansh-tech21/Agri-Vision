@@ -1,0 +1,902 @@
+{% extends "index.html" %}
+
+{% block content %}
+
+<head>
+    <title>Dashboard - Agri-Vision</title>
+    <style>
+        .dashboard-container{
+            max-width:1400px;
+            margin:0 auto;
+            padding:7rem 2rem 3rem;
+            position:relative;
+        }
+
+        .dashboard-container::before{
+            content:"";
+            position:fixed;
+            inset:0;
+            pointer-events:none;
+        
+        /* Navigation Styles */
+        /* Centered dashboard navbar */
+/* Dashboard Navbar */
+/* Navigation Styles */
+/* Dashboard Navbar */
+/* Dashboard Navbar */
+.navbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    border-radius: 12px;
+    left: auto !important;
+    transform: none !important;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;        /* allows two lines */
+    justify-content: center; /* centers everything */
+    align-items: center;
+    gap: 40px;
+    max-width: 1400px;
+    width: 100%;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.nav-menu {
+    display: flex;
+    flex-wrap: wrap;        /* wrap long items to next row */
+    justify-content: center;
+    gap: 43px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-menu li {
+    display: flex;
+}
+
+.nav-menu a {
+    text-align: center;
+    color: white;
+    text-decoration: none;
+    padding: 6px 8px;
+    font-size: 12px;
+    line-height: 1.2;
+    border-radius: 5px;
+    white-space: normal;  /* allows wrapping */
+    transition: background 0.3s;
+}
+
+.nav-menu a:hover,
+.nav-menu a.active {
+    background: rgba(255,255,255,0.2);
+}
+
+.logo {
+    font-size: 18px;
+    font-weight: 600;
+    color: white;
+    margin-right: 20px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+        
+            position:absolute;
+            inset:0;
+        
+            background:
+            linear-gradient(
+                135deg,
+                rgba(76,255,153,.05),
+                rgba(74,144,226,.05)
+            );
+        }
+
+        .dashboard-hero>*{
+            position:relative;
+            z-index:2;
+        }
+
+        .live-status{
+            display:inline-flex;
+            align-items:center;
+            gap:.75rem;
+        
+            padding:.65rem 1rem;
+        
+            border-radius:999px;
+        
+            background:
+            rgba(76,255,153,.08);
+        
+            border:
+            1px solid rgba(76,255,153,.2);
+        
+            margin-bottom:1rem;
+        }
+
+        .pulse{
+            width:10px;
+            height:10px;
+        
+            border-radius:50%;
+        
+            background:#4cff99;
+        
+            animation:pulse 1.5s infinite;
+        }
+
+        @keyframes pulse{
+            0%{
+                box-shadow:0 0 0 0 rgba(76,255,153,.6);
+            }
+        
+            100%{
+                box-shadow:0 0 0 15px rgba(76,255,153,0);
+            }
+        }
+
+        .dashboard-title{
+            font-size:3rem;
+            font-weight:800;
+            line-height:1.1;
+        
+            background:
+            linear-gradient(
+                135deg,
+                #66f0c9,
+                #4A90E2
+            );
+        
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+
+        .dashboard-subtitle{
+            color:#9ca3af;
+            margin-top:1rem;
+            max-width:700px;
+        }
+
+        .stats-grid{
+            display:grid;
+        
+            grid-template-columns:
+            repeat(auto-fit,minmax(260px,1fr));
+        
+            gap:1.5rem;
+        
+            margin-bottom:2rem;
+        }
+
+        .stat-card{
+            position:relative;
+        
+            background:
+            rgba(10,15,15,.7);
+        
+            backdrop-filter:blur(20px);
+        
+            border-radius:24px;
+        
+            padding:1.8rem;
+        
+            border:
+            1px solid rgba(255,255,255,.06);
+        
+            transition:.35s ease;
+        }
+
+        .stat-card:hover{
+            transform:translateY(-8px);
+        
+            border-color:
+            rgba(76,255,153,.25);
+        
+            box-shadow:
+            0 0 35px rgba(76,255,153,.1);
+        }
+
+        .stat-card::before{
+            content:"";
+        
+            position:absolute;
+        
+            left:0;
+            top:0;
+        
+            width:100%;
+            height:3px;
+        
+            background:
+            linear-gradient(
+                90deg,
+                #4cff99,
+                #4A90E2
+            );
+        }
+
+        .stat-value{
+            font-size:3rem;
+            font-weight:800;
+        
+            background:
+            linear-gradient(
+                135deg,
+                #66f0c9,
+                #4A90E2
+            );
+        
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+
+        .stat-label{
+            color:#9ca3af;
+        }
+        .stat-icon{
+            width:60px;
+            height:60px;
+
+            border-radius:18px;
+
+            display:flex;
+            align-items:center;
+            justify-content:center;
+
+            font-size:1.5rem;
+
+            margin-bottom:1rem;
+        }
+        .charts-grid{
+            display:grid;
+            grid-template-columns:
+            repeat(auto-fit,minmax(420px,1fr));
+            gap:1.5rem;
+        }
+
+        .chart-card:hover{
+            transform:translateY(-6px);
+        
+            border-color:
+            rgba(76,255,153,.18);
+        
+            box-shadow:
+            0 0 25px rgba(76,255,153,.08);
+        }
+        .chart-header h3{
+            color:#f8fafc;
+            font-size:1rem;
+            font-weight:700;
+        }
+        .chart-card{
+            background:
+            rgba(10,15,15,.7);
+            transition:.35s ease;
+            backdrop-filter:blur(20px);
+        
+            border-radius:24px;
+        
+            padding:1.5rem;
+        
+            border:
+            1px solid rgba(255,255,255,.06);
+        }
+
+        .chart-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+        
+            margin-bottom:1rem;
+        }
+
+        .chart-live{
+            padding:.4rem .8rem;
+        
+            border-radius:999px;
+        
+            font-size:.75rem;
+        
+            color:#4cff99;
+        
+            background:
+            rgba(76,255,153,.08);
+        
+            border:
+            1px solid rgba(76,255,153,.15);
+        }
+
+        .chart-container{
+            height:320px;
+        }
+
+        .activity-section{
+            background:
+            rgba(10,15,15,.7);
+        
+            backdrop-filter:blur(20px);
+        
+            border-radius:24px;
+        
+            padding:2rem;
+        
+            border:
+            1px solid rgba(255,255,255,.06);
+        }
+
+        .activity-item{
+            position:relative;
+        
+            padding-left:3rem;
+        
+            margin-bottom:1.5rem;
+        }
+
+        .activity-item::before{
+            content:"";
+        
+            position:absolute;
+        
+            left:14px;
+            top:0;
+        
+            width:2px;
+            height:100%;
+        
+            background:
+            linear-gradient(
+                #4cff99,
+                transparent
+            );
+        }
+
+        .activity-icon{
+            position:absolute;
+        
+            left:0;
+        
+            width:30px;
+            height:30px;
+        
+            border-radius:50%;
+        
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        
+            background:
+            rgba(76,255,153,.12);
+        
+            color:#4cff99;
+        }
+        .activity-info strong{
+            display:block;
+            color:#f8fafc;
+            margin-bottom:.3rem;
+        }
+
+        .activity-info span{
+            color:#94a3b8;
+            font-size:.9rem;
+        }
+
+        .activity-time{
+            color:#64748b;
+            font-size:.8rem;
+            margin-top:.3rem;
+        }
+        .stat-change{
+            margin-top:.75rem;
+            font-size:.85rem;
+            font-weight:600;
+        }
+
+        .stat-change.positive{
+            color:#4cff99;
+        }
+
+        .stat-change.negative{
+            color:#ff6b6b;
+        }
+        .hero-metrics{
+            display:flex;
+            gap:2rem;
+            margin-top:2rem;
+            flex-wrap:wrap;
+        }
+
+        .hero-metrics span{
+            display:block;
+            color:#94a3b8;
+            font-size:.8rem;
+        }
+
+        .hero-metrics strong{
+            color:#fff;
+            font-size:1.1rem;
+        }
+        .loading{
+            text-align:center;
+            padding:4rem;
+            color:#94a3b8;
+        }
+
+        .loading i{
+            font-size:2rem;
+            color:#4cff99;
+        }
+        .activity-section h3{
+            color:#fff;
+            margin-bottom:2rem;
+        }
+
+        .activity-item:last-child::before{
+            display:none;
+        }
+        .ai-status-card{
+            display:flex;
+            align-items:center;
+            gap:1rem;
+
+            padding:1.25rem 1.5rem;
+
+            margin-bottom:2rem;
+
+            border-radius:20px;
+
+            background:
+            rgba(76,255,153,.05);
+
+            border:
+            1px solid rgba(76,255,153,.12);
+        }
+
+        .ai-status-card h4{
+            color:#fff;
+            margin:0;
+        }
+
+        .ai-status-card p{
+            margin:.25rem 0 0;
+            color:#94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-leaf"></i>
+                <span>Agri-Vision</span>
+            </a>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="/">Home</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="/analyze">Analyze</a></li>
+                    <li><a href="/batch">Batch</a></li>
+                    <li><a href="/disease-map">Disease<br>Map</a></li>
+                    <li><a href="/dashboard" class="active">Dashboard</a></li>
+                    <li><a href="/reports">Reports</a></li>
+                    <li><a href="/disease-database">Disease<br>DB</a></li>
+                    <li><a href="/symptom-checker">Symptom<br>Checker</a></li>
+                    <li><a href="/disease-forecast">Disease<br>Forecast</a></li>
+                    <li><a href="/history">History</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                    {% if current_user.is_researcher() %}
+                        <li><a href="/model-admin">Admin</a></li>
+                    {% endif %}
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% else %}
+                    <li><a href="/demo">Demo</a></li>
+                    <li><a href="/login" class="btn btn-primary">Login</a></li>
+                    <li><a href="/register" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="dashboard-hero">
+            <div class="live-status">
+                <span class="pulse"></span>
+                AI Monitoring Active
+            </div>
+        
+            <h1 class="dashboard-title">
+                Crop Intelligence Command Center
+            </h1>
+            
+        
+            <p class="dashboard-subtitle">
+                Monitor crop health, disease trends,
+                AI predictions, and regional analytics
+                in real time.
+            </p>
+            <div class="hero-metrics">           
+                <div>
+                    <span>Models</span>
+                    <strong>4 Active</strong>
+                </div>
+            
+                <div>
+                    <span>Status</span>
+                    <strong>Operational</strong>
+                </div>
+            
+                <div>
+                    <span>Accuracy</span>
+                    <strong>97.4%</strong>
+                </div>
+            
+            </div>
+        
+            <div style="margin-top:1.5rem">
+                <a href="/analyze" class="btn btn-primary">
+                    <i class="fas fa-camera"></i>
+                    Analyze Crop
+                </a>
+            </div>
+        
+        </div>
+        
+        <div id="loading" class="loading">
+            <i class="fas fa-spinner"></i>
+            <p>Loading dashboard data...</p>
+        </div>
+
+            <div id="dashboard-content" style="display: none;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dbeafe; color: #2563eb;">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <div class="stat-value" id="total-analyses">0</div>
+                        <div class="stat-label">Total Analyses</div>
+                        <div class="stat-change positive"><i class="fas fa-arrow-up"></i> +12% this week</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dcfce7; color: #16a34a;">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="stat-value" id="healthy-plants">0</div>
+                        <div class="stat-label">Healthy Plants</div>
+                        <div class="stat-change positive"><i class="fas fa-arrow-up"></i> +8% this week</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fee2e2; color: #dc2626;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-value" id="diseased-plants">0</div>
+                        <div class="stat-label">Diseased Plants</div>
+                        <div class="stat-change negative"><i class="fas fa-arrow-down"></i> -5% this week</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fef3c7; color: #d97706;">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div class="stat-value" id="avg-health">0%</div>
+                        <div class="stat-label">Avg Health Score</div>
+                        <div class="stat-change positive"><i class="fas fa-arrow-up"></i> +3% this week</div>
+                    </div>
+                </div>
+                <div class="ai-status-card">
+                    <div class="pulse"></div>
+
+                    <div>
+                        <h4>AI Detection Engine Online</h4>
+                        <p>All crop intelligence services operational</p>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Disease Distribution</h3>
+                            <span class="chart-live">LIVE</span>
+                        </div>
+                    
+                        <div class="chart-container">
+                            <canvas id="diseaseChart"></canvas>
+                        </div>
+                    </div>
+                
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Disease Trends (Last 7 Days)</h3>
+                            <span class="chart-live">LIVE</span>
+                        </div>
+                    
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Growth Stage Distribution</h3>
+                            <span class="chart-live">LIVE</span>
+                        </div>
+                    
+                        <div class="chart-container">
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                    </div>
+                
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Regional Analysis</h3>
+                            <span class="chart-live">LIVE</span>
+                        </div>
+                    
+                        <div class="chart-container">
+                            <canvas id="regionChart"></canvas>
+                        </div>
+                    </div>
+                
+                </div>
+
+                <div class="activity-section">
+                    <h3>
+                        <i class="fas fa-wave-square"></i>
+                        AI Event Timeline
+                    </h3>
+                
+                    <div id="activity-list"></div>
+                
+                </div>
+            </div>
+        </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Mobile navigation toggle
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+        
+        if (navToggle && navMenu) {
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+            });
+            
+            // Close menu when clicking on a link
+            navMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navMenu.classList.remove('active');
+                });
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
+                    navMenu.classList.remove('active');
+                }
+            });
+        }
+        
+        let diseaseChart, trendChart, growthChart, regionChart;
+        
+        async function loadDashboardData() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('dashboard-content').style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/dashboard-stats');
+                if (!response.ok) {
+                    throw new Error('Failed to load dashboard data');
+                }
+                
+                const data = await response.json();
+                
+                // Update statistics
+                document.getElementById('total-analyses').textContent = data.stats.total_analyses;
+                document.getElementById('healthy-plants').textContent = data.stats.healthy_count;
+                document.getElementById('diseased-plants').textContent = data.stats.diseased_count;
+                document.getElementById('avg-health').textContent = data.stats.avg_health_score.toFixed(1) + '%';
+                
+                // Update charts
+                updateDiseaseChart(data.disease_distribution);
+                updateTrendChart(data.disease_trends);
+                updateGrowthChart(data.growth_distribution);
+                updateRegionChart(data.regional_data);
+                
+                // Update activity list
+                updateActivityList(data.recent_activity);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard-content').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                document.getElementById('loading').innerHTML = '<p style="color: #ef4444;">Failed to load dashboard data. Please try again.</p>';
+            }
+        }
+        
+        function updateDiseaseChart(data) {
+            const ctx = document.getElementById('diseaseChart').getContext('2d');
+            
+            if (diseaseChart) {
+                diseaseChart.destroy();
+            }
+            
+            diseaseChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.values,
+                        backgroundColor: [
+                            '#22c55e',
+                            '#ef4444',
+                            '#f59e0b',
+                            '#8b5cf6',
+                            '#ec4899',
+                            '#06b6d4',
+                            '#14b8a6'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateTrendChart(data) {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            if (trendChart) {
+                trendChart.destroy();
+            }
+            
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: data.datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateGrowthChart(data) {
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            
+            if (growthChart) {
+                growthChart.destroy();
+            }
+            
+            growthChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Count',
+                        data: data.values,
+                        backgroundColor: '#4A90E2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateRegionChart(data) {
+            const ctx = document.getElementById('regionChart').getContext('2d');
+            
+            if (regionChart) {
+                regionChart.destroy();
+            }
+            
+            regionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Analyses',
+                        data: data.values,
+                        backgroundColor: '#4cff99'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateActivityList(activities) {
+            const container = document.getElementById('activity-list');
+            container.innerHTML = '';
+            
+            activities.forEach(activity => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                
+                const iconColor = activity.type === 'disease' ? '#ef4444' : 
+                                 activity.type === 'healthy' ? '#22c55e' : '#667eea';
+                
+                item.innerHTML = `
+                    <div class="activity-icon" style="background: ${iconColor}20; color: ${iconColor};">
+                        <i class="fas fa-${activity.icon}"></i>
+                    </div>
+                    <div class="activity-info">
+                        <strong>${activity.title}</strong>
+                        <span>${activity.description}</span>
+                    </div>
+                    <div class="activity-time">${activity.time}</div>
+                `;
+                
+                container.appendChild(item);
+            });
+        }
+        
+        function refreshDashboard() {
+            loadDashboardData();
+        }
+        
+        // Load dashboard on page load
+        document.addEventListener('DOMContentLoaded', loadDashboardData);
+        
+        // Auto-refresh every 5 minutes
+        setInterval(loadDashboardData, 300000);
+    </script>
+{% endblock %}

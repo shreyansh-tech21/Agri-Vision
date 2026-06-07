@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Agri-Vision</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+        }
+        
+        .reports-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .reports-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .reports-header h1 {
+            margin: 0;
+            color: #333;
+            font-size: 28px;
+        }
+        
+        .reports-header p {
+            margin: 5px 0 0 0;
+            color: #666;
+        }
+        
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .report-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .report-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .report-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        
+        .report-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 20px;
+        }
+        
+        .report-card p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .report-options {
+            margin-bottom: 20px;
+        }
+        
+        .report-options label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .report-options select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .btn-generate {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-generate:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .recent-reports {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        
+        .recent-reports h3 {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .report-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .report-item:last-child {
+            border-bottom: none;
+        }
+        
+        .report-item-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #dbeafe;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .report-item-info {
+            flex: 1;
+        }
+        
+        .report-item-info strong {
+            display: block;
+            color: #333;
+        }
+        
+        .report-item-info span {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .btn-download {
+            padding: 8px 16px;
+            background: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .btn-download:hover {
+            background: #16a34a;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .loading i {
+            font-size: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-leaf"></i>
+                <span>Agri-Vision</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a href="/">Home</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="/analyze">Analyze</a></li>
+                    <li><a href="/batch">Batch</a></li>
+                    <li><a href="/disease-map">Disease Map</a></li>
+                    <li><a href="/history">History</a></li>
+                    <li><a href="/reports" class="active">Reports</a></li>
+                    <li><a href="/profile">Profile</a></li>
+                    {% if current_user.is_researcher() %}
+                        <li><a href="/model-admin">Admin</a></li>
+                    {% endif %}
+                    <li><a href="/logout" style="color: #ef4444;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% else %}
+                    <li><a href="/demo">Demo</a></li>
+                    <li><a href="/login" class="btn btn-primary">Login</a></li>
+                    <li><a href="/register" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">Sign Up</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="reports-container">
+        <div class="reports-header">
+            <div>
+                <h1><i class="fas fa-file-pdf"></i> Automated Reports</h1>
+                <p>Generate and download comprehensive analysis reports</p>
+            </div>
+        </div>
+        
+        <div class="reports-grid">
+            <div class="report-card">
+                <div class="report-icon" style="background: #dbeafe; color: #2563eb;">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3>Summary Report</h3>
+                <p>Generate a comprehensive summary of all your analyses within a specified time period.</p>
+                
+                <div class="report-options">
+                    <label for="summary-days">Time Period</label>
+                    <select id="summary-days">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="365">Last Year</option>
+                    </select>
+                </div>
+                
+                <div class="loading" id="summary-loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Generating report...</p>
+                </div>
+                
+                <button class="btn-generate" onclick="generateSummaryReport()" id="summary-btn">
+                    <i class="fas fa-download"></i> Generate Summary Report
+                </button>
+            </div>
+            
+            <div class="report-card">
+                <div class="report-icon" style="background: #dcfce7; color: #16a34a;">
+                    <i class="fas fa-file-medical"></i>
+                </div>
+                <h3>Individual Analysis Report</h3>
+                <p>Generate a detailed report for a specific analysis from your history.</p>
+                
+                <div class="report-options">
+                    <label for="analysis-select">Select Analysis</label>
+                    <select id="analysis-select">
+                        <option value="">-- Select an analysis --</option>
+                    </select>
+                </div>
+                
+                <div class="loading" id="individual-loading">
+                    <i class="fas fa-spinner"></i>
+                    <p>Generating report...</p>
+                </div>
+                
+                <button class="btn-generate" onclick="generateIndividualReport()" id="individual-btn" disabled>
+                    <i class="fas fa-download"></i> Generate Analysis Report
+                </button>
+            </div>
+        </div>
+        
+        <div class="recent-reports">
+            <h3><i class="fas fa-history"></i> Report Generation Guide</h3>
+            <div style="color: #666; line-height: 1.6;">
+                <p><strong>Summary Report:</strong> Includes overall statistics, disease distribution, growth stage analysis, and regional data for all analyses within the selected time period.</p>
+                <p><strong>Individual Analysis Report:</strong> Provides detailed information about a specific analysis including disease detection, growth stage, confidence scores, and recommendations.</p>
+                <p><strong>Features:</strong></p>
+                <ul>
+                    <li>Professional PDF formatting</li>
+                    <li>Detailed statistics and charts</li>
+                    <li>Actionable recommendations</li>
+                    <li>Downloadable for offline viewing</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadAnalyses() {
+            try {
+                const response = await fetch('/api/analyses');
+                if (!response.ok) {
+                    throw new Error('Failed to load analyses');
+                }
+                
+                const data = await response.json();
+                const select = document.getElementById('analysis-select');
+                
+                // Clear existing options
+                select.innerHTML = '<option value="">-- Select an analysis --</option>';
+                
+                // Add analysis options from real data
+                if (data.analyses && data.analyses.length > 0) {
+                    data.analyses.forEach(analysis => {
+                        const option = document.createElement('option');
+                        option.value = analysis.id;
+                        option.textContent = `${analysis.disease} - ${analysis.date} (Health: ${analysis.health_score}%)`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'No analyses available';
+                    option.disabled = true;
+                    select.appendChild(option);
+                }
+                
+            } catch (error) {
+                console.error('Error loading analyses:', error);
+                const select = document.getElementById('analysis-select');
+                select.innerHTML = '<option value="">-- Error loading analyses --</option>';
+            }
+        }
+        
+        async function generateSummaryReport() {
+            const days = document.getElementById('summary-days').value;
+            const btn = document.getElementById('summary-btn');
+            const loading = document.getElementById('summary-loading');
+            
+            btn.disabled = true;
+            loading.classList.add('show');
+            
+            try {
+                const response = await fetch(`/api/generate-summary-report?days=${days}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate report');
+                }
+                
+                // Download the file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `summary_report_${new Date().toISOString().split('T')[0]}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+            } catch (error) {
+                console.error('Error generating report:', error);
+                alert('Failed to generate report. Please try again.');
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('show');
+            }
+        }
+        
+        async function generateIndividualReport() {
+            const analysisId = document.getElementById('analysis-select').value;
+            const btn = document.getElementById('individual-btn');
+            const loading = document.getElementById('individual-loading');
+            
+            if (!analysisId) {
+                alert('Please select an analysis first');
+                return;
+            }
+            
+            btn.disabled = true;
+            loading.classList.add('show');
+            
+            try {
+                const response = await fetch(`/api/generate-report/${analysisId}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate report');
+                }
+                
+                // Download the file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `analysis_report_${analysisId}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+            } catch (error) {
+                console.error('Error generating report:', error);
+                alert('Failed to generate report. Please try again.');
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('show');
+            }
+        }
+        
+        // Enable/disable individual report button based on selection
+        document.getElementById('analysis-select').addEventListener('change', function() {
+            document.getElementById('individual-btn').disabled = !this.value;
+        });
+        
+        // Load analyses on page load
+        document.addEventListener('DOMContentLoaded', loadAnalyses);
+    </script>
+</body>
+</html>
