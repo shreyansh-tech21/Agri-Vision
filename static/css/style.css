@@ -1870,7 +1870,21 @@ main
     .action-btn {
         width: 100%;
         justify-content: center;
+        min-height: 52px;
+        border-radius: 14px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.3s ease;
+        cursor: pointer;
         box-shadow: 0 10px 30px rgba(74, 144, 226, 0.2);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-3px);
+    }
+
+    .action-btn i {
+        margin-right: 8px;
     }
 
     .info-grid {
@@ -3589,3 +3603,43 @@ Issue Reference:
             color: black !important;
         }
     }
+
+
+    /* Bounding Box Coordinate Display */
+
+.bbox-coordinates {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+}
+
+.bbox-coordinates span {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    border-radius: 8px;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.78rem;
+    font-family: monospace;
+    color: var(--text-main);
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.bbox-coordinates span:hover {
+    transform: translateY(-2px);
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.secondary-detections-card {
+    backdrop-filter: blur(10px);
+}
+
+.secondary-detections-card h4 {
+    letter-spacing: 0.3px;
+}
+
+.secondary-detections-card .bbox-coordinates {
+    margin-bottom: 0.25rem;
+}
