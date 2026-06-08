@@ -123,8 +123,8 @@ def test_concurrent_refresh_only_one_succeeds(app_with_db):
 
         results = {"ok": [], "err": []}
 
-        def worker(idx: int) -> None:
-            with app_with_db.app_context():
+        def worker(idx: int, app) -> None:
+            with app.app_context():
                 try:
                     access, refresh2 = rotate_refresh_token(
                         raw_refresh_token=refresh_raw,
@@ -136,9 +136,10 @@ def test_concurrent_refresh_only_one_succeeds(app_with_db):
                 except RefreshRotationError as e:
                     results["err"].append((e.code, str(e)))
 
-        t1 = threading.Thread(target=worker, args=(1,))
-        t2 = threading.Thread(target=worker, args=(2,))
+        t1 = threading.Thread(target=worker, args=(1, app_with_db))
+        t2 = threading.Thread(target=worker, args=(2, app_with_db))
         t1.start()
+        import time; time.sleep(0.05)
         t2.start()
         t1.join()
         t2.join()

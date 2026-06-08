@@ -12,10 +12,10 @@
         "is_active": true,
         "ab_test_ratio": 0.0,
         "performance_metrics": {
-          "total_requests": 30,
-          "successful_predictions": 30,
-          "avg_confidence": 0.32715334997150175,
-          "avg_inference_time": 0.2628354787826538,
+          "total_requests": 40,
+          "successful_predictions": 40,
+          "avg_confidence": 0.33984888254706125,
+          "avg_inference_time": 0.22882812023162838,
           "error_count": 0
         }
       }
@@ -32,10 +32,10 @@
         "is_active": true,
         "ab_test_ratio": 0.0,
         "performance_metrics": {
-          "total_requests": 4,
-          "successful_predictions": 4,
-          "avg_confidence": 0.95,
-          "avg_inference_time": 0.0,
+          "total_requests": 6,
+          "successful_predictions": 6,
+          "avg_confidence": 0.9500000000000001,
+          "avg_inference_time": 0.00016689300537109375,
           "error_count": 0
         }
       }
@@ -43,5 +43,5 @@
   },
   "ab_test_enabled": true,
   "rollback_threshold": 0.75,
-  "last_updated": "2026-06-08T16:26:31.361867"
+  "last_updated": "2026-06-08T16:39:15.571658"
 }

@@ -1,7 +1,7 @@
 {% extends "index.html" %}
 
 {% block content %}
-<section class="main-content">
+<section class="main-content" aria-label="Crop image upload and analysis">
     <div class="container" style="padding-bottom: 4rem;">
         <div class="glass-card reveal reveal-fade-up upload-card">
             <div class="section-header" style="margin-bottom: 1.5rem;">
@@ -34,6 +34,7 @@
                                 autocomplete="off"
                                 oninput="onCityInput(this)"
                                 class="weather-location-input"
+                                aria-label="City name for weather-aware recommendations"
                             />
                             <span id="city-tick" class="weather-location-tick">✅</span>
                         </div>
@@ -161,6 +162,7 @@
                         capture="environment"
                         style="display:none;"
                         onchange="previewImage(this)"
+                        aria-label="Capture crop image using camera"
                     />
                 </div>
 
@@ -191,7 +193,7 @@
                     </div>
                     <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--emerald-green); margin-bottom: 1rem;"></i>
                     <p style="font-size: 1rem; margin-bottom: 0.5rem;">Drag & drop any crop file here</p>
-                    <p style="font-size: 0.85rem; opacity: 0.6;">All formats supported (Images, PDFs, etc. — Max 5MB)</p>
+                    <p style="font-size: 0.85rem; opacity: 0.6;">All formats supported (Images, PDFs, etc. — Max 16MB)</p>
                     <input
                         type="file"
                         id="fileInput"
@@ -199,8 +201,22 @@
                         accept="*/*"
                         style="display:none;"
                         onchange="previewImage(this)"
+                        aria-label="Upload crop image file"
+                        aria-describedby="upload-format-hint"
                     />
+                    <span id="upload-format-hint" class="sr-only" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Accepted formats: Images and PDFs. Maximum file size: 16MB.</span>
                 </div>
+
+                <div id="file-info" style="display:none; margin-top: 0.75rem; padding: 0.5rem 1rem; background: rgba(46, 139, 87, 0.08); border-radius: 8px; font-size: 0.85rem; color: var(--text-primary);"></div>
+
+                <div id="upload-error" class="hidden" style="display:none; margin-top: 0.75rem; padding: 0.75rem 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px;" role="alert">
+                    <p style="color: #ef4444; font-weight: 600; font-size: 0.9rem; margin: 0 0 0.25rem;"><i class="fas fa-exclamation-circle"></i> Upload Failed</p>
+                    <p id="upload-error-message" style="color: #dc2626; font-size: 0.85rem; margin: 0;"></p>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large action-btn">
+                        <i class="fas fa-magnifying-glass"></i> Start AI Analysis
+                    </button>
 
                 <div class="smart-insights-panel">
                     <div class="insights-header">
@@ -213,18 +229,21 @@
                             <h4>Weather Status</h4>
                             <p class="insight-value">28°C Cloudy</p>
                             <span class="insight-tag good">Good for crop monitoring</span>
+                            <span class="sr-only" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Status: Good</span>
                         </div>
                         <div class="insight-card moisture-card">
                             <div class="insight-icon">💧</div>
                             <h4>Soil Moisture</h4>
                             <p class="insight-value">Moderate</p>
                             <span class="insight-tag warning">Irrigation suggested</span>
+                            <span class="sr-only" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Status: Warning — irrigation may be needed</span>
                         </div>
                         <div class="insight-card disease-card">
                             <div class="insight-icon">🦠</div>
                             <h4>Disease Risk</h4>
                             <p class="insight-value">Low Risk</p>
                             <span class="insight-tag success">Healthy condition</span>
+                            <span class="sr-only" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Status: Low risk — healthy condition</span>
                         </div>
                         <div class="insight-card health-card">
                             <div class="insight-icon">🌱</div>
@@ -233,17 +252,15 @@
                                 <div class="health-progress-bar"></div>
                             </div>
                             <p class="health-score">86% Healthy</p>
+                            <span class="sr-only" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;">Crop health score: 86 percent healthy</span>
                         </div>
                     </div>
                 </div>
 
                 <div style="margin-top: 3rem;">
-                    <button type="submit" class="btn btn-primary btn-large action-btn">
-                        <i class="fas fa-magnifying-glass"></i> Start AI Analysis
-                    </button>
                 </div>
                 
-                <div id="streamProgressPanel" style="display:none; margin-top:1.5rem;">
+                <div id="streamProgressPanel" style="display:none; margin-top:1.5rem;" role="region" aria-label="Analysis progress" aria-live="polite">
                     <div style="
                         background: linear-gradient(135deg, #0c1c27 0%, #043158 100%);
                         border: 1px solid rgba(255,255,255,0.1);
@@ -367,8 +384,8 @@
 </style>
 
 <script>
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB for images
-const MAX_PDF_SIZE = 10 * 1024 * 1024;  // 10MB for PDFs
+const MAX_IMAGE_SIZE = 16 * 1024 * 1024; // 16MB for images
+const MAX_PDF_SIZE = 16 * 1024 * 1024;  // 16MB for PDFs
 
 function showError(message) {
     const errorDiv = document.getElementById('validation-error');
@@ -498,11 +515,20 @@ async function previewImage(input) {
         let file = input.files[0];
         const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
 
+        const fileInfo = document.getElementById('file-info');
+        if (fileInfo) {
+            fileInfo.textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + ' MB)';
+            fileInfo.style.display = 'block';
+        }
+
+        const uploadError = document.getElementById('upload-error');
+        if (uploadError) uploadError.style.display = 'none';
+
         if (isPdf && file.size > MAX_PDF_SIZE) {
-            showError('PDF is too large. Maximum allowed size is 10MB.');
+            showError('PDF is too large. Maximum allowed size is 16MB.');
             input.value = ''; return;
         } else if (!isPdf && file.size > MAX_IMAGE_SIZE) {
-            showError('Image is too large. Maximum allowed size is 5MB.');
+            showError('Image is too large. Maximum allowed size is 16MB.');
             input.value = ''; return;
         }
         
@@ -569,8 +595,12 @@ function resetUpload() {
     const cameraInput = document.getElementById('cameraInput');
     const previewContainer = document.getElementById('previewContainer');
     const preview = document.getElementById('imagePreview');
+    const fileInfo = document.getElementById('file-info');
+    const uploadError = document.getElementById('upload-error');
     
     hideError();
+    if (fileInfo) { fileInfo.textContent = ''; fileInfo.style.display = 'none'; }
+    if (uploadError) uploadError.style.display = 'none';
     input.value = '';
     if (cameraInput) cameraInput.value = '';
     preview.src = '';

@@ -347,6 +347,7 @@ FALLBACK_RECOMMENDATIONS: Dict[str, Any] = {
 
 LOW_CONFIDENCE_THRESHOLD = 0.45
 MEDIUM_CONFIDENCE_THRESHOLD = 0.70
+HIGH_CONFIDENCE_THRESHOLD = 0.85  # Below this, treatment recommendations are withheld
 
 
 # ---------------------------------------------------------------------------
@@ -430,6 +431,31 @@ def get_recommendations(
             - confidence_advisory (str or None)
             - is_fallback (bool)
     """
+    # Block recommendations when model confidence is too low to be actionable.
+    # A sub-threshold prediction should not drive farmer treatment decisions.
+    if confidence is not None and confidence < HIGH_CONFIDENCE_THRESHOLD:
+        logger.warning(
+            "Prediction confidence %.2f below threshold %.2f for crop '%s' / disease '%s'. "
+            "Withholding treatment recommendations to prevent false positives.",
+            confidence, HIGH_CONFIDENCE_THRESHOLD, crop_type, disease_name,
+        )
+        return {
+            "crop_type": crop_type or "unknown",
+            "disease_name": disease_name or "unknown",
+            "treatment": [],
+            "prevention": [],
+            "irrigation": [],
+            "organic_control": [],
+            "chemical_control": [],
+            "severity_advice": [],
+            "confidence_advisory": (
+                "Prediction confidence is too low to make a reliable treatment recommendation. "
+                "Please re-upload a clearer image or consult a local agricultural expert."
+            ),
+            "is_fallback": True,
+            "no_treatment": True,
+        }
+
     # Normalize inputs for safe lookup
     crop_key = crop_type.strip().lower() if crop_type else ""
     disease_key = disease_name.strip() if disease_name else ""

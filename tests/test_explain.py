@@ -137,3 +137,51 @@ def test_grad_cam_cache_eviction():
     assert len(app.GRAD_CAM_CACHE) == max_size
     assert "0" not in app.GRAD_CAM_CACHE
     assert str(max_size) in app.GRAD_CAM_CACHE
+
+
+def test_api_explain_target_invalid_inputs(client):
+    # Missing parameters
+    resp = client.post("/api/explain/target", json={})
+    assert resp.status_code == 400
+    res_data = json.loads(resp.data)
+    assert "error" in res_data
+
+    # Invalid class index type
+    resp = client.post("/api/explain/target", json={"image_path": "test.png", "target_class_idx": "invalid"})
+    assert resp.status_code == 400
+
+    # Non-existent image path
+    resp = client.post("/api/explain/target", json={"image_path": "nonexistent_file.png", "target_class_idx": 3})
+    assert resp.status_code == 404
+
+
+def test_api_explain_target_valid(client, monkeypatch):
+    # Setup mock resnet model
+    model = MiniResNet()
+    monkeypatch.setattr(app.model_manager, "resnet_model", model)
+    monkeypatch.setattr(app.model_manager, "yolo_model", None)
+    monkeypatch.setattr(app.model_manager, "loaded", True)
+    monkeypatch.setattr(app, "resnet_model", model)
+    
+    # Save a test image in static/uploads
+    import os
+    os.makedirs("static/uploads", exist_ok=True)
+    test_image_path = "static/uploads/test_explain_target_mock.png"
+    dummy_img = np.zeros((64, 64, 3), dtype=np.uint8)
+    cv2.imwrite(test_image_path, dummy_img)
+    
+    try:
+        resp = client.post("/api/explain/target", json={
+            "image_path": "test_explain_target_mock.png",
+            "target_class_idx": 3
+        })
+        assert resp.status_code == 200
+        res_data = json.loads(resp.data)
+        assert res_data["status"] == "success"
+        assert "overlay_b64" in res_data
+        assert "heatmap_only_b64" in res_data
+        assert res_data["target_class"] == app.disease_classes[3]
+    finally:
+        if os.path.exists(test_image_path):
+            os.remove(test_image_path)
+
