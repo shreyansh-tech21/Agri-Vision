@@ -367,7 +367,8 @@ class ModelManager:
                             RESNET_MODEL_PATH,
                             map_location=torch.device("cpu"),
                         )
-                    except Exception:
+                    except (RuntimeError, torch.serialization.PickleError) as exc:
+                        logger.debug(f"ResNet50 with weights_only=True failed, retrying with weights_only=False: {exc}")
                         self.resnet_model = torch.load(
                             RESNET_MODEL_PATH,
                             map_location=torch.device("cpu"),
@@ -376,9 +377,13 @@ class ModelManager:
                     self.resnet_model.eval()
                     self.errors["resnet"] = None
                     logger.info("ResNet50 model loaded successfully")
+                except (FileNotFoundError, RuntimeError, TypeError) as exc:
+                    self.errors["resnet"] = str(exc)
+                    logger.error(f"ResNet50 model failed to load from {RESNET_MODEL_PATH}: {exc}")
+                    self.resnet_model = None
                 except Exception as exc:
                     self.errors["resnet"] = str(exc)
-                    logger.warning(f"ResNet50 model not found or failed to load: {exc}")
+                    logger.exception(f"Unexpected error loading ResNet50 model: {exc}")
                     self.resnet_model = None
 
             if self.yolo_model is None:
@@ -840,7 +845,14 @@ def read_validated_upload_image(file_storage) -> Tuple[str, np.ndarray, np.ndarr
     try:
         img = Image.open(BytesIO(file_bytes))
         img.verify()
-    except Exception:
+    except (IOError, OSError, ValueError) as e:
+        logger.warning(f"Image validation failed during PIL verify: {e}")
+        raise UploadValidationError(
+            "Unable to process this image. It may be corrupt or in an unsupported format.",
+            status_code=400,
+        )
+    except Exception as e:
+        logger.exception(f"Unexpected error during image verification: {e}")
         raise UploadValidationError(
             "Unable to process this image. It may be corrupt or in an unsupported format.",
             status_code=400,
