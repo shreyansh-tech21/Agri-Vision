@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 import threading
+import uuid
 
 import pytest
 
@@ -11,26 +12,10 @@ from auth.token_crypto import sha256_hex
 from models import db, User, RefreshTokenFamily, RefreshToken
 
 
-@pytest.fixture()
-def app_with_db(tmp_path, monkeypatch):
-    """SQLite under ``tmp_path`` so all threads share one DB file (not isolated :memory: per connection)."""
-    import app as flask_app
-
-    db_path = tmp_path / "refresh_rotation_test.db"
-    uri = "sqlite:///" + str(db_path).replace("\\", "/")
-
-    flask_app.app.config.update({"TESTING": True, "SQLALCHEMY_DATABASE_URI": uri})
-
-    with flask_app.app.app_context():
-        db.engine.dispose()
-        db.create_all()
-        yield flask_app.app
-        db.session.remove()
-        db.drop_all()
-
-
 def _seed_user_and_family(db_session):
-    user = User(email="u@example.com", full_name="User", role="farmer")
+    # Unique email: session-scoped DB is shared across both tests in this module.
+    email = f"u-{uuid.uuid4().hex[:12]}@example.com"
+    user = User(email=email, full_name="User", role="farmer")
     user.set_password("password123")
     db_session.add(user)
     db_session.commit()
@@ -100,9 +85,9 @@ def test_concurrent_refresh_only_one_succeeds(app_with_db):
       revoked under ``with_for_update`` in ``rotate_refresh_token``).
     - Each worker uses ``with app.app_context()`` because Flask's application
       context is thread-local; workers do not inherit the main thread's context.
-    - File-backed SQLite (see ``app_with_db``) gives one shared database for all
-      connections; raw ``sqlite:///:memory:`` can attach each connection to a
-      different empty DB and makes this harness flaky.
+    - File-backed SQLite via session ``app_with_db`` in ``conftest.py`` gives one
+      shared database for all connections; raw ``sqlite:///:memory:`` can attach
+      each connection to a different empty DB and makes this harness flaky.
     Stress locally: ``pytest tests/test_refresh_rotation.py::test_concurrent_refresh_only_one_succeeds --count=50``
     (requires ``pytest-repeat``) or a shell loop.
     """
