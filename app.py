@@ -11,6 +11,7 @@ import os
 import random
 import math
 import re
+import functools
 import threading
 from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
@@ -19,6 +20,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from io import BytesIO
 from services.weather_service import get_weather
+from sqlalchemy import inspect, text
 
 import redis
 import base64
@@ -49,6 +51,11 @@ from jinja2 import Environment, FileSystemLoader
 from model_registry import registry
 from services.weather_service import generate_weather_recommendations
 from services.yield_service import estimate_yield
+from services.auth_security_service import (
+    AccountLockoutService,
+    get_client_ip,
+    get_user_agent,
+)
 from security_utils import (
     UploadValidationError,
     cleanup_temp_upload,
@@ -96,9 +103,56 @@ limiter = Limiter(
     strategy="fixed-window",
 )
 from models import db
-from sqlite_db import configure_sqlite_immediate_transactions
-
 db.init_app(app)
+
+
+_account_lockout_schema_checked = False
+
+
+def ensure_account_lockout_schema() -> None:
+    """Backfill account lockout columns for existing create_all-managed DBs."""
+    inspector = inspect(db.engine)
+    if "users" not in inspector.get_table_names():
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("users")}
+    dialect = db.engine.dialect.name
+    datetime_type = "TIMESTAMP" if dialect == "postgresql" else "DATETIME"
+    columns = {
+        "failed_login_attempts": "INTEGER NOT NULL DEFAULT 0",
+        "last_failed_login_at": datetime_type,
+        "account_locked_until": datetime_type,
+        "last_successful_login_at": datetime_type,
+        "last_failed_ip": "VARCHAR(64)",
+        "last_successful_ip": "VARCHAR(64)",
+    }
+
+    changed = False
+    with db.engine.begin() as connection:
+        for column_name, ddl_type in columns.items():
+            if column_name not in existing_columns:
+                connection.execute(text(f"ALTER TABLE users ADD COLUMN {column_name} {ddl_type}"))
+                changed = True
+        connection.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS ix_users_account_locked_until "
+                "ON users (account_locked_until)"
+            )
+        )
+    if changed:
+        logger.info("Account lockout schema columns added to users table")
+
+
+@app.before_request
+def _ensure_account_lockout_schema_once() -> None:
+    global _account_lockout_schema_checked
+    if _account_lockout_schema_checked or app.config.get("TESTING"):
+        return
+    try:
+        ensure_account_lockout_schema()
+        _account_lockout_schema_checked = True
+    except Exception as exc:
+        logger.warning("Account lockout schema check skipped: %s", exc)
 
 # Serialize concurrent writers on SQLite (e.g. refresh-token rotation).
 with app.app_context():
@@ -318,7 +372,7 @@ class ModelManager:
                             RESNET_MODEL_PATH,
                             map_location=torch.device("cpu"),
                         )
-                    except TypeError:
+                    except Exception:
                         self.resnet_model = torch.load(
                             RESNET_MODEL_PATH,
                             map_location=torch.device("cpu"),
@@ -367,7 +421,9 @@ yolo_model = None
 grad_cam_instance = None
 
 
+@functools.lru_cache(maxsize=1)
 def load_models():
+    """Delegate to ModelManager singleton for thread-safe model loading."""
     global resnet_model, yolo_model
     if resnet_model is None:
         try:
@@ -391,6 +447,7 @@ def load_models():
             logger.warning(f"YOLOv8 model not found or failed to load: {e}")
             yolo_model = None
     return resnet_model, yolo_model
+
 
 def ensure_models_loaded() -> None:
     load_models()
@@ -531,14 +588,28 @@ class GradCAM:
 # -------------------------------------------------------------------
 # INFERENCE PIPELINE
 # -------------------------------------------------------------------
-def preprocess_image_for_resnet(image: np.ndarray, target_size: Tuple[int, int] = (224, 224)) -> torch.Tensor:
-    transform = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.Resize(target_size),
-        transforms.ToTensor(),
-    ])
-    tensor = transform(image).unsqueeze(0)
-    return tensor
+
+# Define ONCE at module level — built once, reused every request.
+# Includes ImageNet normalization required by ResNet50 for correct inference.
+RESNET_TRANSFORM = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225],
+    ),
+])
+
+
+def preprocess_image_for_resnet(image: np.ndarray) -> torch.Tensor:
+    """Preprocess an RGB numpy image for ResNet50 inference.
+
+    Uses the module-level RESNET_TRANSFORM pipeline which includes
+    ImageNet normalization (mean=[0.485, 0.456, 0.406],
+    std=[0.229, 0.224, 0.225]).
+    """
+    return RESNET_TRANSFORM(image).unsqueeze(0)
 
 
 def infer_disease(image):
@@ -2122,14 +2193,21 @@ def demo():
         
         # Convert from BGR to RGB
         synthetic_rgb = cv2.cvtColor(synthetic_bgr, cv2.COLOR_BGR2RGB)
-        
+
+        # Write synthetic image as a demo file for target explainability to locate
+        os.makedirs("static/uploads", exist_ok=True)
+        cv2.imwrite(os.path.join("static", "uploads", "demo_cotton.jpg"), synthetic_bgr)
+
         # Generate mock heatmap
+        from services.gradcam import generate_pure_heatmap, apply_heatmap_on_image
         mock_heatmap = generate_mock_heatmap(synthetic_rgb)
+        pure_heatmap_rgb = generate_pure_heatmap(synthetic_rgb, mock_heatmap)
         mock_overlay = apply_heatmap_on_image(synthetic_rgb, mock_heatmap)
         
         # Base64 encode both original synthetic image and XAI overlay
         image_b64 = encode_image_for_display(synthetic_rgb)
         grad_cam_image_b64 = encode_image_for_display(mock_overlay)
+        heatmap_only_b64 = encode_image_for_display(pure_heatmap_rgb)
         
         # Set top-level and nested properties for robustness
         demo_disease["heatmap_b64"] = grad_cam_image_b64
@@ -2146,27 +2224,45 @@ def demo():
         
         # Generate farmer insights
         insights = generate_farmer_insights(demo_disease, demo_growth)
+
+        from services.recommendation_engine import get_recommendations
+        demo_treatment_recs = get_recommendations(
+            crop_type="cotton",
+            disease_name=demo_disease.get("predicted_class", "Healthy"),
+            confidence=demo_disease.get("confidence"),
+        )
     
         example_json = {
             "disease": demo_disease,
             "growth": demo_growth,
             "recommendations": generate_recommendations(demo_disease, demo_growth),
             "grad_cam_image_b64": grad_cam_image_b64,
+            "heatmap_only_b64": heatmap_only_b64,
+            "heatmap_image_path": None,
+            "heatmap_only_path": None,
             "disease_severity": severity,
             "yield_estimate": yield_est,
             "advanced_recommendations": adv_recs,
-            "farmer_insights": insights
+            "farmer_insights": insights,
+            "treatment_recommendations": demo_treatment_recs
         }
         return render_template(
             "results.html",
             results=example_json,
             filename="demo_cotton.jpg",
+            unique_filename="demo_cotton.jpg",
             image_b64=image_b64,
             img_shape={"width": 512, "height": 384},
             raw_json=json.dumps(example_json, indent=2),
             timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             grad_cam_image_b64=grad_cam_image_b64,
-            yield_estimate=yield_est
+            heatmap_only_b64=heatmap_only_b64,
+            heatmap_image_path=None,
+            heatmap_only_path=None,
+            yield_estimate=yield_est,
+            disease_info=disease_info_map.get("Healthy", {}),
+            treatment_recommendations=demo_treatment_recs,
+            weather=None,
         )
     except Exception as e:
         logger.error(f"Demo route failed: {e}")
@@ -2749,25 +2845,56 @@ def login():
         return redirect(url_for('index'))
     
     if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+        email = (request.form.get('email') or '').strip().lower()
+        password = request.form.get('password') or ''
         remember = request.form.get('remember')
+        ip_address = get_client_ip()
+        user_agent = get_user_agent()
+        lockout_service = AccountLockoutService()
         
         from models import User
         user = User.query.filter_by(email=email).first()
+
+        if user:
+            lockout_state = lockout_service.check_lockout(user)
+            if lockout_state.unlocked_expired_lock:
+                lockout_service.record_unlock(
+                    user,
+                    ip=ip_address,
+                    user_agent=user_agent,
+                )
+                db.session.commit()
+            if lockout_state.locked:
+                flash('Account temporarily locked. Please try again later.', 'danger')
+                return render_template(
+                    'login.html',
+                    google_oauth_enabled=GOOGLE_OAUTH_ENABLED,
+                ), 423
         
         if user and user.check_password(password):
             if not user.is_active:
                 flash('Your account has been deactivated. Please contact support.', 'danger')
-                return render_template('login.html')
+                return render_template('login.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
             
             login_user(user, remember=remember)
-            user.last_login = datetime.utcnow()
+            lockout_service.record_successful_login(
+                user,
+                ip=ip_address,
+                user_agent=user_agent,
+            )
+            user.last_login = user.last_successful_login_at
             db.session.commit()
             
             next_page = request.args.get('next')
             return redirect(next_page) if next_page else redirect(url_for('index'))
         else:
+            if user:
+                lockout_service.record_failed_login(
+                    user,
+                    ip=ip_address,
+                    user_agent=user_agent,
+                )
+                db.session.commit()
             flash('Invalid email or password', 'danger')
     
     return render_template('login.html', google_oauth_enabled=GOOGLE_OAUTH_ENABLED)
@@ -3603,6 +3730,7 @@ if __name__ == '__main__':
     # Initialize database tables
     with app.app_context():
         db.create_all()
+        ensure_account_lockout_schema()
         logger.info("Database tables created")
 
         # Seed enterprise RBAC (idempotent)

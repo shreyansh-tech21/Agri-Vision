@@ -63,17 +63,27 @@
     --glass-bg: rgba(255, 255, 255, 0.65);
     --glass-border: rgba(255, 255, 255, 0.4);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+ optimize-glow-effects-readability
+    --glass-blur: 8px;
+
     --glass-blur: 12px;
 
     /* Table */
+ main
     --table-header-bg: rgba(46, 139, 87, 0.1);
     --table-cell-bg: rgba(255, 255, 255, 0.5);
 
     /* Shadows */
     --soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+ optimize-glow-effects-readability
+    --hover-shadow: 0 6px 16px rgba(46, 139, 87, 0.06);
+    
+    /* Dashboard Tokens */
+
     --hover-shadow: 0 10px 30px rgba(46, 139, 87, 0.1);
 
     /* Dashboard */
+ main
     --dashboard-bg: #f8faf9;
     --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
     --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
@@ -150,6 +160,57 @@ nav a[href="/model-admin"]:hover {
     --hover-shadow: 0 10px 30px rgba(60, 179, 113, 0.2);
     --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     --card-hover-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    
+    /* Ensure templates using --text-color inherit readable color in dark mode */
+    --text-color: var(--text-main);
+    --dashboard-bg: #1A1A1A;
+
+    /* Theme override fixes */
+    --warm-earth: #BCAAA4; /* High contrast warm-sand instead of dark-brown */
+      /* High contrast deep-green-black */
+    --footer-text: #E0EAE2;
+    --footer-muted: rgba(224, 234, 226, 0.6);
+
+    /* Dark mode overrides for redesigned components */
+    .confidence-meter-container {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .confidence-progress-bg {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .severity-high {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+    
+    .severity-moderate {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+    
+    .severity-healthy {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border-color: rgba(16, 185, 129, 0.3);
+    }
+    
+    .rec-card {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    
+    .rec-icon {
+        background: rgba(46, 139, 87, 0.2);
+        color: #5cd18b;
+    }
+    
+    .rec-content h4 {
+        color: #e0e0e0;
+    }
+}
 
     --dashboard-bg: #1A1A1A;
 
@@ -196,6 +257,17 @@ body {
     font-size: 15px;
     cursor: default;
     transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Keyboard Accessibility Focus Outlines */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 2.5px solid var(--emerald-green);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(46, 139, 87, 0.15);
 }
 
 /* UTILITY CLASSES */
@@ -338,6 +410,8 @@ body {
     font-size: 1.2rem;
     cursor: pointer;
     display: none;
+    align-items: center;
+    justify-content: center;
     z-index: 999;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     transition: 0.3s;
@@ -444,15 +518,54 @@ body {
     opacity: 1 !important;
 }
 
+
+/* 
+   CTA BUTTON HOVER ACCESSIBILITY IMPROVEMENT
+
+   Purpose:
+   Improve the readability and visual accessibility of
+   primary call-to-action buttons during hover interactions.
+
+   Background:
+   The previous implementation used black text on top of
+   green gradient backgrounds. Although functional, this
+   could create reduced visual contrast under certain
+   theme configurations and display environments.
+
+   Improvements:
+   - Increased text visibility on hover states
+   - Better contrast against gradient backgrounds
+   - Consistent user experience across light and dark themes
+   - Improved accessibility for interactive elements
+   - Enhanced visual feedback during navigation
+
+   Affected Components:
+   - Navigation CTA buttons
+   - Primary action buttons
+   - Dark theme hover states
+   - Global button interaction styling
+
+   Notes:
+   This change is purely presentational and does not modify
+   any application logic, routing behavior, authentication
+   workflows, API integrations, or backend functionality.
+
+   Future Considerations:
+   - WCAG contrast validation
+   - Theme-specific hover customization
+   - Additional accessibility audits
+   - Consistent hover-state standardization across the UI
+ */
+
 .nav-menu .btn-primary:hover {
-    color: #000000 !important;
+    color: #ffffff !important;
     opacity: 1 !important;
 }
 
 [data-theme="dark"] .btn-primary:hover,
 [data-theme="dark"] .btn-primary:hover *,
 [data-theme="dark"] .nav-menu .btn-primary:hover {
-    color: #000000 !important;
+    color: #ffffff !important;
     opacity: 1 !important;
 }
 
@@ -474,6 +587,20 @@ nav a {
     font-weight: 500;
 }
 
+ optimize-glow-effects-readability
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.16;
+    animation: floatBlob 20s infinite alternate ease-in-out;
+    transition: opacity 0.4s ease;
+}
+
+[data-theme="dark"] .blob {
+    opacity: 0.22;
+    filter: blur(80px);
+
 nav a:hover {
     background: var(--soft-mint);
     color: var(--emerald-green);
@@ -482,6 +609,7 @@ nav a:hover {
 nav a[href="/model-admin"] {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white !important;
+ main
 }
 
 nav a[href="/model-admin"]:hover {
@@ -511,6 +639,7 @@ nav a[href="/model-admin"]:hover {
     position: relative;
     overflow: hidden;
     z-index: 1;
+    white-space: nowrap;
 }
 
 .btn-primary {
@@ -519,6 +648,149 @@ nav a[href="/model-admin"]:hover {
     box-shadow: 0 8px 25px rgba(46, 139, 87, 0.2);
 }
 
+ optimize-glow-effects-readability
+/* CSS Technology Grid Pattern */
+.hero-grid-overlay {
+    position: absolute;
+    inset: 0;
+    background-image: 
+        linear-gradient(to right, rgba(46, 139, 87, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(46, 139, 87, 0.04) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 2;
+}
+
+[data-theme="dark"] .hero-grid-overlay {
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+.hero-container {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 4rem;
+    align-items: center;
+    z-index: 3;
+    width: 100%;
+}
+
+.hero-content {
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Premium Badge styling */
+.hero-badge-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.5rem 1.2rem;
+    background: rgba(46, 139, 87, 0.07);
+    color: var(--emerald-green);
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    border: 1px solid rgba(46, 139, 87, 0.15);
+    box-shadow: 0 4px 15px rgba(46, 139, 87, 0.03);
+    transition: var(--transition-smooth);
+}
+
+[data-theme="dark"] .hero-badge {
+    background: rgba(60, 179, 113, 0.12);
+    border-color: rgba(60, 179, 113, 0.25);
+    color: var(--emerald-green);
+}
+
+.badge-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--fresh-green);
+    border-radius: 50%;
+    position: relative;
+    display: inline-block;
+}
+
+.badge-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid var(--fresh-green);
+    animation: pulseGlow 3s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+
+.hero-content h1 {
+    font-size: 3.2rem;
+    line-height: 1.15;
+    color: var(--deep-forest);
+    margin-bottom: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.hero-content h1 span {
+    display: block;
+    background: linear-gradient(135deg, var(--emerald-green), var(--ai-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 1px 4px rgba(74, 144, 226, 0.05));
+}
+
+.hero-content p {
+    font-size: 1.15rem;
+    color: var(--warm-earth);
+    margin-bottom: 2.5rem;
+    max-width: 550px;
+    line-height: 1.6;
+    font-weight: 400;
+}
+
+.hero-cta {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+/* Premium Buttons */
+.btn {
+    padding: 0.9rem 2.2rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--emerald-green), var(--fresh-green));
+    color: white;
+    box-shadow: 0 8px 25px rgba(46, 139, 87, 0.2);
+}
+
+
+ main
 .btn-primary::before {
     content: '';
     position: absolute;
@@ -534,7 +806,7 @@ nav a[href="/model-admin"]:hover {
 .btn-primary:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 30px rgba(46, 139, 87, 0.35);
-    color: #000000 !important;
+    color: #ffffff !important;
 }
 
 .btn-primary:hover::before {
@@ -587,16 +859,22 @@ nav a[href="/model-admin"]:hover {
 .language-switcher {
     padding: 6px 10px;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: transparent;
+    border: 1px solid var(--card-border);
+    background: var(--card-bg);
     color: var(--text-color);
     cursor: pointer;
-    display: flex;
-    align-items: center;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.language-switcher:hover {
+    border-color: var(--emerald-green);
 }
 
 .language-switcher option {
-    color: black;
+    background: var(--card-bg);
+    color: var(--text-color);
 }
 
 @keyframes healthPulse {
@@ -755,6 +1033,16 @@ nav a[href="/model-admin"]:hover {
         }
     }
 
+ optimize-glow-effects-readability
+.telemetry-pulse::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border: 2px solid var(--ai-blue);
+    border-radius: 50%;
+    animation: pulseGlow 3s infinite;
+}
+
     /* Grid overlay */
     .hero-grid-overlay {
         position: absolute;
@@ -766,6 +1054,7 @@ nav a[href="/model-admin"]:hover {
         pointer-events: none;
         z-index: 2;
     }
+main
 
     [data-theme="dark"] .hero-grid-overlay {
         background-image:
@@ -929,9 +1218,9 @@ nav a[href="/model-admin"]:hover {
         border: 1px solid var(--card-border);
         box-shadow: var(--card-shadow);
         transition: var(--transition-smooth);
-        height: 350px;
-        width: 500px;
-        max-width: 100%;
+        aspect-ratio: 4/3;
+        width: 100%;
+        max-width: 500px;
         box-sizing: border-box;
     }
 
@@ -1244,6 +1533,10 @@ nav a[href="/model-admin"]:hover {
             margin: 0 auto;
         }
 
+        .hero-content h1 {
+            font-size: 2.5rem;
+        }
+
         .hero-image {
             order: 2;
             display: flex;
@@ -1260,6 +1553,16 @@ nav a[href="/model-admin"]:hover {
             width: 100%;
             max-width: 450px;
             height: auto;
+        }
+
+        .floating-telemetry-1,
+        .floating-telemetry-2 {
+            position: static;
+            margin: 1rem auto 0;
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            align-items: center;
         }
 
         .typewriter {
@@ -1327,14 +1630,17 @@ nav a[href="/model-admin"]:hover {
 
         .scanner-container {
             width: 100%;
-            height: 260px;
+            max-width: 450px;
+            height: auto;
+            margin: 0 auto;
         }
 
         .floating-telemetry-1,
         .floating-telemetry-2 {
             position: static;
-            margin-top: 0.75rem;
+            margin: 1rem auto 0;
             width: 100%;
+            max-width: 450px;
         }
     }
 
@@ -1691,7 +1997,21 @@ nav a[href="/model-admin"]:hover {
     .action-btn {
         width: 100%;
         justify-content: center;
+        min-height: 52px;
+        border-radius: 14px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        transition: all 0.3s ease;
+        cursor: pointer;
         box-shadow: 0 10px 30px rgba(74, 144, 226, 0.2);
+    }
+
+    .action-btn:hover {
+        transform: translateY(-3px);
+    }
+
+    .action-btn i {
+        margin-right: 8px;
     }
 
     .info-grid {
@@ -2277,6 +2597,110 @@ nav a[href="/model-admin"]:hover {
         }
     }
 
+/* --- Results Page Redesign Styles --- */
+.confidence-meter-container {
+    background: rgba(0, 0, 0, 0.02);
+    padding: 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.meter-label-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: var(--deep-forest);
+}
+
+.confidence-progress-bg {
+    width: 100%;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 50px;
+    overflow: hidden;
+}
+
+.confidence-progress-fill {
+    height: 100%;
+    border-radius: 50px;
+    transition: width 1.5s cubic-bezier(0.1, 0, 0.1, 1);
+}
+
+.meter-green { background: linear-gradient(90deg, #10b981, #34d399); }
+.meter-yellow { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.meter-red { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+.severity-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.severity-healthy { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.severity-high { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.severity-moderate { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1rem;
+}
+
+.rec-card {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    transition: var(--transition-smooth);
+}
+
+.rec-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
+    border-color: var(--emerald-green);
+}
+
+.rec-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--soft-mint);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: var(--emerald-green);
+    flex-shrink: 0;
+}
+
+.rec-content h4 {
+    margin-bottom: 0.5rem;
+    color: var(--deep-forest);
+    font-size: 1rem;
+}
+
+.rec-content p {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.comparison-summary-card.trend-declined {
+    border-left-color: #dc3545;
+}
     /* FIELD PHOTO COMPARISON PAGE */
     .comparison-page {
         padding-bottom: 5rem;
@@ -2745,12 +3169,122 @@ nav a[href="/model-admin"]:hover {
         color: var(--text-muted);
     }
 
+ fix/analysis-action-controls-styling-v2
+/*
+Analysis Action Controls Design System
+
+Purpose:
+- Improve consistency between primary and secondary actions
+- Provide clearer visual hierarchy
+- Improve accessibility
+- Improve keyboard navigation
+- Improve responsive behavior
+- Standardize spacing
+- Standardize sizing
+- Standardize icon alignment
+- Improve hover feedback
+- Improve focus visibility
+
+Buttons Covered:
+- Voice Assistant
+- Download PDF Report
+
+Issue Reference:
+#691
+*/
+
+/* 
+   Analysis Action Controls Enhancement
+   Issue #691
+ */
+
+.analysis-actions-container{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:1.2rem;
+    margin-top:2rem;
+    margin-bottom:2rem;
+    flex-wrap:wrap;
+    padding:1rem 0;
+    border-top:1px solid var(--card-border);
+}
+
+.analysis-actions-container .btn-action{
+    min-width:220px;
+    min-height:52px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:0.75rem;
+    font-weight:600;
+    border-radius:12px;
+    transition:all 0.3s ease;
+}
+
+.analysis-actions-container .btn-action i{
+    font-size:1rem;
+}
+
+.analysis-actions-container .btn-action:hover{
+    transform:translateY(-3px);
+}
+
+.analysis-actions-container .btn-action:focus{
+    outline:3px solid rgba(59,130,246,0.25);
+    outline-offset:3px;
+}
+
+.analysis-actions-container .btn-action-primary{
+    box-shadow:0 8px 20px rgba(59,130,246,0.15);
+}
+
+.analysis-actions-container .btn-action-secondary{
+    box-shadow:0 8px 20px rgba(16,185,129,0.15);
+}
+
+.analysis-actions-container .btn-action-primary:hover{
+    box-shadow:0 12px 28px rgba(59,130,246,0.25);
+}
+
+.analysis-actions-container .btn-action-secondary:hover{
+    box-shadow:0 12px 28px rgba(16,185,129,0.25);
+}
+
+.analysis-actions-container .btn-action:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+    transform:none;
+}
+
+@media(max-width:768px){
+
+    .analysis-actions-container{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .analysis-actions-container .btn-action{
+        width:100%;
+        min-width:unset;
+    }
+}
+
+.info-grid {
+    margin-top: 4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    text-align: left;
+}
+
     .comparison-mini-meta {
         display: flex;
         flex-wrap: wrap;
         gap: 0.65rem;
         margin-top: 1.5rem;
     }
+ main
 
     .comparison-mini-meta span {
         display: inline-flex;
@@ -2884,14 +3418,44 @@ nav a[href="/model-admin"]:hover {
         color: var(--footer-text);
     }
 
+/* 
+   FOOTER CONTENT SPACING & VISUAL HIERARCHY REFINEMENT
+
+   Purpose:
+   Improve content breathing room, readability,
+   and visual organization within the footer.
+
+   Enhancements:
+   - Increased spacing between footer sections.
+   - Improved separation of informational blocks.
+   - Strengthened heading prominence.
+   - Enhanced subtitle readability.
+   - Better alignment with overall design language.
+   - Improved responsive content distribution.
+
+   UX Benefits:
+   - Easier content scanning.
+   - Better visual rhythm.
+   - Reduced footer congestion.
+   - Stronger information hierarchy.
+   - More professional presentation.
+
+   Future Opportunities:
+   - Multi-column footer architecture.
+   - Interactive footer navigation groups.
+   - Expandable informational sections.
+   - Accessibility-focused typography scaling.
+ */
+
     .footer-container {
         max-width: 1100px;
         margin: 0 auto;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 2.75rem;
+        gap: 2rem;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
     }
 
     .footer-brand h2 {
@@ -2899,30 +3463,81 @@ nav a[href="/model-admin"]:hover {
         color: var(--footer-text);
         margin: 0;
     }
+/*
+   FOOTER NAVIGATION LINK SYSTEM
 
+   This footer hyperlink group serves as the primary
+   secondary-navigation area for users seeking access
+   to informational resources, support channels,
+   educational content, and platform-related pages.
+
+   Design Objectives:
+   - Maintain visual consistency with the global
+     Agri-Vision design language.
+   - Provide predictable navigation behavior across
+     all viewport sizes and device categories.
+   - Ensure typography hierarchy remains aligned
+     with established UI standards.
+   - Preserve accessibility and readability while
+     supporting dark-mode environments.
+
+   Enhancements Included:
+   - Consistent spacing between navigation items.
+   - Unified typography and font-weight handling.
+   - Smooth hover-state transitions.
+   - Responsive wrapping for smaller screens.
+   - Theme-aware color inheritance through CSS variables.
+   - Improved long-term maintainability through
+     centralized footer link styling.
+
+   Future Extension Possibilities:
+   - Animated underline indicators.
+   - Active-page highlighting.
+   - Keyboard navigation enhancements.
+   - Focus-visible accessibility improvements.
+   - Icon-supported footer navigation groups.
+ */
     .footer-links-compact {
         display: flex;
         gap: 2rem;
     }
 
     .footer-links-compact a {
-        color: var(--footer-text);
-        text-decoration: none;
-        font-size: 0.9rem;
-        opacity: 0.95;
-        transition: var(--transition-smooth);
-        font-weight: 600;
+    color: var(--footer-text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    opacity: 0.95;
+    transition: var(--transition-smooth);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    position: relative;
     }
 
     .footer-links-compact a:hover {
         opacity: 1;
-        text-decoration: underline;
+        color: var(--emerald-green);
+        text-decoration: none;
+    }
+
+    .footer-links-compact a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -4px;
+        width: 0;
+        height: 2px;
+        background: var(--emerald-green);
+        transition: width 0.3s ease;
+    }
+
+    .footer-links-compact a:hover::after {
+        width: 100%;
     }
 
     .footer-bottom {
         max-width: 1100px;
         margin: 0 auto;
-        padding-top: 1.5rem;
+        padding-top: 2rem;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         display: flex;
         justify-content: space-between;
@@ -2948,12 +3563,16 @@ nav a[href="/model-admin"]:hover {
     }
 
     .footer-title {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
     }
 
     .footer-subtitle {
-        font-size: 0.85rem;
-        opacity: 0.8;
+        font-size: 0.9rem;
+        opacity: 0.9;
+        line-height: 1.7;
     }
 
     @media (max-width: 768px) {
@@ -2999,11 +3618,16 @@ nav a[href="/model-admin"]:hover {
         font-size: 1.2rem;
         cursor: pointer;
         padding: 5px;
-        transition: color 0.3s ease;
+        transition: color 0.3s ease, transform 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
         line-height: 1;
+    }
+
+    .theme-toggle-btn:hover {
+        transform: scale(1.15);
+        color: var(--emerald-green);
     }
 
     /* KEYFRAME ANIMATIONS */
@@ -3132,6 +3756,140 @@ nav a[href="/model-admin"]:hover {
             transform: rotate(0deg);
         }
 
+.health-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(
+        90deg,
+        #5dd18b,
+        #6ddc90
+    );
+    box-shadow: 0 0 15px rgba(93,211,139,0.45);
+}
+
+/* Redesigned Confidence Meter */
+.confidence-meter-container {
+    margin: 1.5rem 0;
+    background: var(--card-bg);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+}
+
+.meter-label-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.confidence-progress-bg {
+    width: 100%;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.confidence-progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: progressFill 1.5s ease-out forwards;
+}
+
+@keyframes progressFill {
+    from { width: 0; }
+}
+
+.meter-green { background: linear-gradient(90deg, #34d399, #10b981); }
+.meter-yellow { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+.meter-red { background: linear-gradient(90deg, #f87171, #ef4444); }
+
+/* Severity Badges */
+.severity-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.35rem 0.9rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.severity-high {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.severity-moderate {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.severity-healthy {
+    background: #d1fae5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+/* Recommendation Cards */
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1.2rem;
+}
+
+.rec-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.rec-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: var(--emerald-green);
+}
+
+.rec-icon {
+    width: 42px;
+    height: 42px;
+    background: var(--soft-mint);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--emerald-green);
+    flex-shrink: 0;
+}
+
+.rec-content h4 {
+    margin-bottom: 0.3rem;
+    color: var(--deep-forest);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.rec-content p {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    margin: 0;
+}
         100% {
             transform: rotate(360deg);
         }
@@ -3249,3 +4007,43 @@ nav a[href="/model-admin"]:hover {
             color: black !important;
         }
     }
+
+
+    /* Bounding Box Coordinate Display */
+
+.bbox-coordinates {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+}
+
+.bbox-coordinates span {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    border-radius: 8px;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.78rem;
+    font-family: monospace;
+    color: var(--text-main);
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.bbox-coordinates span:hover {
+    transform: translateY(-2px);
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.secondary-detections-card {
+    backdrop-filter: blur(10px);
+}
+
+.secondary-detections-card h4 {
+    letter-spacing: 0.3px;
+}
+
+.secondary-detections-card .bbox-coordinates {
+    margin-bottom: 0.25rem;
+}

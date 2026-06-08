@@ -12,10 +12,10 @@
         "is_active": true,
         "ab_test_ratio": 0.0,
         "performance_metrics": {
-          "total_requests": 40,
-          "successful_predictions": 40,
-          "avg_confidence": 0.33984888254706125,
-          "avg_inference_time": 0.22882812023162838,
+          "total_requests": 10,
+          "successful_predictions": 10,
+          "avg_confidence": 0.6876743187328006,
+          "avg_inference_time": 0.12633967399597168,
           "error_count": 0
         }
       }
@@ -43,5 +43,5 @@
   },
   "ab_test_enabled": true,
   "rollback_threshold": 0.75,
-  "last_updated": "2026-06-08T16:39:15.571658"
+  "last_updated": "2026-06-06T16:30:03.016253"
 }
