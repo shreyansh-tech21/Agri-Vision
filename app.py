@@ -11,6 +11,7 @@ import os
 import random
 import math
 import re
+import functools
 import threading
 from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
@@ -366,7 +367,7 @@ class ModelManager:
                             RESNET_MODEL_PATH,
                             map_location=torch.device("cpu"),
                         )
-                    except TypeError:
+                    except Exception:
                         self.resnet_model = torch.load(
                             RESNET_MODEL_PATH,
                             map_location=torch.device("cpu"),
@@ -415,7 +416,9 @@ yolo_model = None
 grad_cam_instance = None
 
 
+@functools.lru_cache(maxsize=1)
 def load_models():
+    """Delegate to ModelManager singleton for thread-safe model loading."""
     global resnet_model, yolo_model
     if resnet_model is None:
         try:
@@ -439,6 +442,7 @@ def load_models():
             logger.warning(f"YOLOv8 model not found or failed to load: {e}")
             yolo_model = None
     return resnet_model, yolo_model
+
 
 def ensure_models_loaded() -> None:
     load_models()
@@ -579,14 +583,28 @@ class GradCAM:
 # -------------------------------------------------------------------
 # INFERENCE PIPELINE
 # -------------------------------------------------------------------
-def preprocess_image_for_resnet(image: np.ndarray, target_size: Tuple[int, int] = (224, 224)) -> torch.Tensor:
-    transform = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.Resize(target_size),
-        transforms.ToTensor(),
-    ])
-    tensor = transform(image).unsqueeze(0)
-    return tensor
+
+# Define ONCE at module level — built once, reused every request.
+# Includes ImageNet normalization required by ResNet50 for correct inference.
+RESNET_TRANSFORM = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225],
+    ),
+])
+
+
+def preprocess_image_for_resnet(image: np.ndarray) -> torch.Tensor:
+    """Preprocess an RGB numpy image for ResNet50 inference.
+
+    Uses the module-level RESNET_TRANSFORM pipeline which includes
+    ImageNet normalization (mean=[0.485, 0.456, 0.406],
+    std=[0.229, 0.224, 0.225]).
+    """
+    return RESNET_TRANSFORM(image).unsqueeze(0)
 
 
 def infer_disease(image):
