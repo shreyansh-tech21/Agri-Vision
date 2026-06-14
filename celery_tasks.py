@@ -37,7 +37,7 @@ def _ensure_app_context():
 
 if CELERY_AVAILABLE:
     @celery.task(bind=True, autoretry_for=(Exception,), retry_backoff=True, max_retries=3)
-    def analyze_image_task(self, job_id: str, result_id: str, image_b64: str):
+    def analyze_image_task(self, job_id: str, result_id: str, image_name: str, image_index: int, image_b64: str):
         """Analyse one image and update DB AnalysisResult row."""
         import cv2
         import numpy as np
