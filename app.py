@@ -18,6 +18,7 @@ from typing import Any, Dict, Optional, Tuple
 from werkzeug.utils import secure_filename
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_talisman import Talisman
 from io import BytesIO
 from services.weather_service import get_weather
 from sqlalchemy import inspect, text
@@ -62,6 +63,7 @@ from security_utils import (
     resolve_secret_key,
     save_temp_upload,
     validate_image_upload,
+    is_production_env,
 )
 from auth.authorization import require_role, require_any_role, require_permission
 from models import Role, Permission, RolePermission, UserRole
@@ -84,6 +86,8 @@ redis_port = int(os.getenv("REDIS_PORT", "6379"))
 redis_db = int(os.getenv("REDIS_DB", "0"))
 limiter_storage_uri = "memory://"
 
+is_prod = is_production_env(os.environ)
+
 try:
     redis_client = redis.Redis(
         host=redis_host,
@@ -96,8 +100,11 @@ try:
     limiter_storage_uri = f"redis://{redis_host}:{redis_port}/{redis_db}"
     logger.info("redis connected for caching and rate limiting")
 except (redis.exceptions.ConnectionError, ModuleNotFoundError) as err:
-    logger.warning(f"caching layer bypass active: {err}")
     redis_client = None
+    if is_prod:
+        logger.warning(f"limiter falling back to memory storage in production! Redis is required for rate limit consistency across workers. Error: {err}")
+    else:
+        logger.warning(f"caching layer bypass active: {err}")
 
 limiter = Limiter(
     get_remote_address,
@@ -220,6 +227,44 @@ app.request_class = CustomRequest
 swagger = Swagger(app)
 CORS(app)
 
+csp = {
+    'default-src': ["'self'"],
+    'script-src': [
+        "'self'",
+        'cdnjs.cloudflare.com',
+        'unpkg.com',
+        'cdn.jsdelivr.net',
+        "'unsafe-inline'",
+        "'unsafe-eval'"
+    ],
+    'style-src': [
+        "'self'",
+        "'unsafe-inline'",
+        'cdnjs.cloudflare.com',
+        'unpkg.com'
+    ],
+    'img-src': [
+        "'self'",
+        'data:',
+        'images.unsplash.com',
+        'developers.google.com',
+        'unpkg.com',
+        '*.openstreetmap.org'
+    ],
+    'frame-src': [
+        "'self'",
+        'https://www.youtube.com',
+        'https://youtube.com'
+    ],
+    'font-src': [
+        "'self'",
+        'cdnjs.cloudflare.com'
+    ],
+    'connect-src': ["'self'"]
+}
+Talisman(app, content_security_policy=csp, force_https=False)
+
+
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
 app.jinja_env.auto_reload = True
@@ -235,7 +280,7 @@ app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
 app.config["MAX_FORM_MEMORY_SIZE"] = 25 * 1024 * 1024
 app.config.setdefault("UPLOAD_MAX_BYTES", app.config["MAX_CONTENT_LENGTH"])
 app.config.setdefault("UPLOAD_RATE_LIMIT", "10 per minute")
-app.config.setdefault("API_UPLOAD_RATE_LIMIT", "20 per minute")
+app.config.setdefault("API_UPLOAD_RATE_LIMIT", "10 per minute")
 app.config.setdefault("UPLOAD_TMP_DIR", os.path.join(app.instance_path, "uploads"))
 os.makedirs(app.config["UPLOAD_TMP_DIR"], exist_ok=True)
 
@@ -370,7 +415,7 @@ class ModelManager:
                             RESNET_MODEL_PATH,
                             map_location=torch.device("cpu"),
                         )
-                    except (RuntimeError, torch.serialization.PickleError) as exc:
+                    except (RuntimeError, Exception) as exc:
                         logger.debug(f"ResNet50 with weights_only=True failed, retrying with weights_only=False: {exc}")
                         self.resnet_model = torch.load(
                             RESNET_MODEL_PATH,
@@ -2370,7 +2415,9 @@ def api_weather():
 
 
 @app.route("/api/analyze", methods=["POST"])
-@limiter.limit(lambda: app.config.get("API_UPLOAD_RATE_LIMIT", "20 per minute"))
+@app.route("/api/predict", methods=["POST"])
+@app.route("/predict", methods=["POST"])
+@limiter.limit(lambda: app.config.get("API_UPLOAD_RATE_LIMIT", "10 per minute"))
 def api_analyze():
     temp_path = None
     try:
@@ -2459,6 +2506,7 @@ def api_analyze_stream():
 # --- Batch Processing Endpoints ---
 
 @app.route("/api/batch_upload", methods=["POST"])
+@limiter.limit("3 per minute")
 def api_batch_upload():
     """Upload multiple images for batch analysis"""
     try:
@@ -2847,6 +2895,7 @@ def batch_results_page(job_id):
 # --- Authentication Routes ---
 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
 def login():
     """Login page"""
     if current_user.is_authenticated:
