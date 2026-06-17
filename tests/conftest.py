@@ -5,6 +5,9 @@ from PIL import Image
 import numpy as np
 
 os.environ.setdefault("SECRET_KEY", "test-secret")
+# Avoid reusing a local sqlite file whose schema may lag behind models.py
+# (create_all skips existing tables, which breaks inserts after ORM changes).
+os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 
 import app as app_module
 
